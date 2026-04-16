@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Instagram, Facebook, Linkedin } from "lucide-react";
 
 const slides = [
   { src: "/photos/1.png" },
@@ -98,6 +99,37 @@ export default function WhatIDo() {
             }`}
           />
         ))}
+      </div>
+
+      {/* Social links */}
+      <div className="flex items-center gap-4 pt-2">
+        <a
+          href="https://www.instagram.com/khurelbb"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+        >
+          <Instagram className="w-5 h-5" />
+        </a>
+        <a
+          href="https://www.facebook.com/khurelbaatarba/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+        >
+          <Facebook className="w-5 h-5" />
+        </a>
+        <a
+          href="https://www.linkedin.com/in/khurelbaatarba/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+        >
+          <Linkedin className="w-5 h-5" />
+        </a>
       </div>
     </div>
   );
