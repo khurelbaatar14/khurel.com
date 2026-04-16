@@ -119,7 +119,8 @@ export default function Articles() {
       <div className="w-full flex flex-col gap-4">
         {categories.map((cat) => {
           const isOpen = open === cat.number;
-          const hasArticles = cat.articles.length > 0;
+          const visibleArticles = cat.articles.filter((a) => a.url && a.url !== "#");
+          const hasArticles = visibleArticles.length > 0;
           return (
             <div key={cat.number} className="rounded-2xl border border-border/60 overflow-hidden">
               {/* Category header — clickable only if articles exist */}
@@ -165,7 +166,7 @@ export default function Articles() {
                     className="overflow-hidden border-t border-border/50"
                   >
                     <div className="px-6 py-6 bg-muted/20">
-                      <Features items={cat.articles} />
+                      <Features items={visibleArticles} />
                       <div className="mt-4 flex justify-end">
                         <button className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline group">
                           See all articles
