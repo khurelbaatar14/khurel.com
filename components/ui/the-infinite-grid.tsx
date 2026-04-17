@@ -70,14 +70,17 @@ export const Component = () => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-3xl mx-auto space-y-6">
-        <div className="space-y-3 pointer-events-none">
-          <p className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
-            Welcome
+        <div className="space-y-4 pointer-events-none">
+          <p className="text-base md:text-lg text-muted-foreground font-light leading-relaxed">
+            Hi, my name is{" "}
+            <span className="text-foreground font-semibold">Khurelbaatar</span>
+            , but you can call me{" "}
+            <span className="text-foreground font-semibold">Khurel</span>.
           </p>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
-            Khurelbaatar
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
+            Welcome to my<br />personal web.
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground tracking-widest uppercase">
             engineer. entrepreneur
           </p>
         </div>
