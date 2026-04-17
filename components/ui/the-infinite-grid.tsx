@@ -87,7 +87,7 @@ export const Component = () => {
               Hi, my name is{" "}
               <span className="text-foreground font-semibold">Khurelbaatar</span>
               ,{" "}but you can call me{" "}
-              <span className="text-foreground font-semibold">Khurel</span>.
+              <span className="text-foreground font-semibold">Khurel</span>, that&apos;s easier.
             </p>
           </div>
 
