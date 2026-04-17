@@ -54,6 +54,26 @@ export default function Article() {
           />
         </div>
 
+        {/* Astana photos */}
+        <div className="grid grid-cols-2 gap-3 mb-10">
+          <div className="rounded-xl overflow-hidden aspect-[4/3] bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/astana1.jpeg"
+              alt="Astana Hub, Kazakhstan"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="rounded-xl overflow-hidden aspect-[4/3] bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/astana2.jpeg"
+              alt="Astana Hub, Kazakhstan"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
         <hr className="border-border mb-12" />
 
         {/* Article body */}
