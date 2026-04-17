@@ -84,12 +84,6 @@ export const Component = () => {
 
         <div className="flex gap-4 pt-2">
           <button
-            onClick={() => scrollTo("what-i-do")}
-            className="px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-all shadow-md active:scale-95"
-          >
-            See My Work
-          </button>
-          <button
             onClick={() => scrollTo("connect")}
             className="px-8 py-3 bg-secondary text-secondary-foreground font-semibold rounded-md hover:bg-secondary/80 transition-all active:scale-95"
           >
