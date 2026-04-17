@@ -36,7 +36,7 @@ export default function Article() {
             </div>
             <div>
               <p className="text-sm font-medium">Khurelbaatar</p>
-              <p className="text-xs text-muted-foreground">April 2026</p>
+              <p className="text-xs text-muted-foreground">Aug 26, 2025</p>
             </div>
           </div>
         </div>
