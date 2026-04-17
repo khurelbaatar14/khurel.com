@@ -34,9 +34,9 @@ const categories: Category[] = [
       },
       {
         icon: Globe,
-        title: "Building for a landlocked market",
-        description: "The unique challenges and unexpected advantages of starting up in a country sandwiched between two giants.",
-        url: "#",
+        title: "I Presented This Slide to the Prime Minister",
+        description: "59% vs 0%. Last weekend I showed Mongolia's Prime Minister exactly how far behind we are — and asked him to fix it.",
+        url: "/articles/presenting-to-the-prime-minister",
       },
       {
         icon: Users,
