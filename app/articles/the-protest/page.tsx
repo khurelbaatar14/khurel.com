@@ -69,27 +69,21 @@ export default function Article() {
         <article className="prose prose-zinc dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-base prose-headings:font-bold prose-headings:tracking-tight">
 
           <p>
-            I have been going to protests since 1995. I know what a Mongolian protest looks like.
-            This one was different.
+            A friend who has been attending protests since 1995 said this one felt completely
+            different — and I understood exactly what he meant when I got there.
           </p>
 
-          <p>
-            There was singing. An actual program with music. People sat and listened to speakers —
-            genuinely listened, not out of obligation. Nobody was bored. Nobody was performing anger
-            for a camera.
-          </p>
+          <blockquote>
+            &ldquo;There was singing. An actual program with music. People sat and listened to
+            speakers — genuinely listened, not out of obligation. Nobody was bored. Nobody was
+            performing anger for a camera. Then the counter-protesters arrived. The crowd did not
+            react. Some of the young organizers walked over and started actual conversations with
+            them: &lsquo;We understand you. This isn&apos;t your fault.&rsquo; Times have changed.
+            This generation is different.&rdquo;
+          </blockquote>
 
           <p>
-            Then the counter-protesters arrived — the paid ones, the organized disruption. I braced
-            myself. What happened next was something I had never seen at a Mongolian protest. The
-            crowd did not react. No hostility, no chanting them down. Some of the young organizers
-            walked over and started actual conversations with them: &quot;We understand you. This
-            isn&apos;t your fault.&quot;
-          </p>
-
-          <p>
-            I sat among the counter-protesters for a while, watching. I could not believe what I
-            was seeing. Times have changed. This generation is different.
+            That is exactly what I saw too. Something in the texture of it was new.
           </p>
 
           <h2>What the Night Meant</h2>
