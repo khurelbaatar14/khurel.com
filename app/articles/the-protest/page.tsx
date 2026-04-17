@@ -5,6 +5,10 @@ export const metadata = {
   title: "The Morning I Felt Power Belong to the People | Khurelbaatar",
   description:
     "After ex-PM Oyun-Erdene stepped down, I stood in Sukhbaatar Square until midnight. This is what I saw — and what it made me believe.",
+  openGraph: {
+    images: [{ url: "/photos/protest2.png" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Article() {

@@ -8,8 +8,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://khurel.com"),
   title: "Khurelbaatar",
-  description: "Builder. Father. Thinker. — Personal site of Khurelbaatar.",
+  description: "Engineer. Entrepreneur. — Personal site of Khurelbaatar.",
+  openGraph: {
+    siteName: "Khurelbaatar",
+    images: [{ url: "/photos/avatar.png" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({

@@ -5,6 +5,10 @@ export const metadata = {
   title: "I Presented This Slide to the Prime Minister | Khurelbaatar",
   description:
     "Last weekend I stood in front of Mongolia's Prime Minister and made the case for startup tax relief. Here's what I said — and what he promised.",
+  openGraph: {
+    images: [{ url: "/photos/pm-slide.png" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Article() {

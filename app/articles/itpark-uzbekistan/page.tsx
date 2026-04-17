@@ -5,6 +5,10 @@ export const metadata = {
   title: "We Became an IT Park Uzbekistan Resident. Here's Why That Indicts Mongolia. | Khurelbaatar",
   description:
     "OnePlaceHR Technologies is now a resident of IT Park Uzbekistan — zero tax until 2040. The business logic for routing investment there instead of Mongolia writes itself.",
+  openGraph: {
+    images: [{ url: "/photos/itparkuz1.png" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Article() {

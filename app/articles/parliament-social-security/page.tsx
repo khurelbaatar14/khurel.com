@@ -5,6 +5,10 @@ export const metadata = {
   title: "I Asked Parliament to Do One Thing | Khurelbaatar",
   description:
     "Mongolia's Social Security contribution is a hidden payroll tax that kills startups before they reach revenue. I asked Parliament to fix just this one thing.",
+  openGraph: {
+    images: [{ url: "/photos/parliament2.jpeg" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Article() {

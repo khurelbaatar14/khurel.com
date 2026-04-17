@@ -5,6 +5,10 @@ export const metadata = {
   title: "Mongolia's Startup Policy Is Years Behind. Here's the Data. | Khurelbaatar",
   description:
     "Kazakhstan built a functioning startup ecosystem with clear tax policy and measurable targets. Mongolia has neither. The gap is widening.",
+  openGraph: {
+    images: [{ url: "/photos/astana1.jpeg" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function Article() {
