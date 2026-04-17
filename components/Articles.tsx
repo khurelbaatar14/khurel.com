@@ -52,6 +52,16 @@ const articles: Article[] = [
     url: "/articles/itpark-uzbekistan",
     thumbnail: undefined,
   },
+  {
+    badge: "Politics",
+    badgeClass: "bg-emerald-500/10 text-emerald-600",
+    title: "The Morning I Felt Power Belong to the People",
+    description:
+      "After ex-PM Oyun-Erdene stepped down, I stood in Sukhbaatar Square until midnight. This is what I saw — and what it made me believe.",
+    date: "May 2024",
+    url: "/articles/the-protest",
+    thumbnail: "/photos/protest2.jpg",
+  },
 ];
 
 export default function Articles() {
