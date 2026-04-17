@@ -40,7 +40,7 @@ const articles: Article[] = [
       "Mongolia's Social Security contribution drains startups before they reach revenue. I asked Parliament to fix just this — one clause, this year.",
     date: "April 2026",
     url: "/articles/parliament-social-security",
-    thumbnail: undefined,
+    thumbnail: "/photos/parliament1.png",
   },
   {
     badge: "Ecosystem",

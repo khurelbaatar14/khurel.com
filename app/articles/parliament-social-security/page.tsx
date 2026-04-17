@@ -43,6 +43,16 @@ export default function Article() {
           </div>
         </div>
 
+        {/* Photo */}
+        <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/photos/parliament1.png"
+            alt="Meeting with Parliament members"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
         {/* YouTube embed */}
         <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
           <iframe
