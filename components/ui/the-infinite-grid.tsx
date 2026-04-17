@@ -78,7 +78,7 @@ export const Component = () => {
             Khurelbaatar
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground">
-            Builder. Father. Thinker.
+            engineer. entrepreneur
           </p>
         </div>
 
