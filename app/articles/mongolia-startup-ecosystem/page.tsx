@@ -43,6 +43,17 @@ export default function Article() {
           </div>
         </div>
 
+        {/* YouTube embed */}
+        <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
+          <iframe
+            src="https://www.youtube.com/embed/NQTmEsr7VaU"
+            title="Mongolia Startup Ecosystem"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        </div>
+
         <hr className="border-border mb-12" />
 
         {/* Article body */}
