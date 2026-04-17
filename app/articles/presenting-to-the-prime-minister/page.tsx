@@ -41,18 +41,35 @@ export default function Article() {
           </div>
         </div>
 
-        {/* Slide image */}
-        <div className="rounded-xl overflow-hidden mb-10 bg-zinc-900">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/photos/tax-slide.png"
-            alt="Tax comparison slide: Astana Hub 0%, IT Park Uzbekistan 7.5%, Mongolia 59%"
-            className="w-full"
-          />
-          <div className="p-4 text-center">
-            <p className="text-xs text-zinc-400">
-              Tax burden comparison: Astana Hub (Kazakhstan) vs IT Park (Uzbekistan) vs Mongolia
-            </p>
+        {/* Photo grid */}
+        <div className="flex flex-col gap-3 mb-10">
+          {/* Slide — full width */}
+          <div className="rounded-xl overflow-hidden bg-zinc-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/pm-slide.png"
+              alt="Tax comparison: Astana Hub 0%, IT Park 7.5%, Mongolia 59%"
+              className="w-full"
+            />
+          </div>
+          {/* Two event photos side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl overflow-hidden aspect-[3/4] bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/pm-audience.png"
+                alt="Audience at the event with the Prime Minister"
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div className="rounded-xl overflow-hidden aspect-[3/4] bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/pm-speaking.png"
+                alt="Khurelbaatar speaking on stage"
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
           </div>
         </div>
 
