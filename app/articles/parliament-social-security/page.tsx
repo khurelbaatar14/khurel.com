@@ -47,7 +47,7 @@ export default function Article() {
         <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/photos/parliament1.png"
+            src="/photos/parliament2.jpeg"
             alt="Meeting with Parliament members"
             className="w-full h-full object-cover"
           />
