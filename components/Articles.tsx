@@ -60,7 +60,7 @@ const articles: Article[] = [
       "After ex-PM Oyun-Erdene stepped down, I stood in Sukhbaatar Square until midnight. This is what I saw — and what it made me believe.",
     date: "May 2024",
     url: "/articles/the-protest",
-    thumbnail: "/photos/protest2.jpg",
+    thumbnail: "/photos/protest2.png",
   },
 ];
 

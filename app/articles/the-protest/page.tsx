@@ -48,7 +48,7 @@ export default function Article() {
           <div className="rounded-xl overflow-hidden aspect-[4/5] bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/photos/protest1.jpg"
+              src="/photos/protest1.png"
               alt="Youth gathered at Sukhbaatar Square"
               className="w-full h-full object-cover"
             />
@@ -56,7 +56,7 @@ export default function Article() {
           <div className="rounded-xl overflow-hidden aspect-[4/5] bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/photos/protest2.jpg"
+              src="/photos/protest2.png"
               alt="Protesters at Sukhbaatar Square"
               className="w-full h-full object-cover"
             />
