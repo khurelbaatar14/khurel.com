@@ -40,9 +40,9 @@ const categories: Category[] = [
       },
       {
         icon: Users,
-        title: "The founders I'm watching",
-        description: "Profiles of the next generation of Mongolian entrepreneurs solving real problems.",
-        url: "#",
+        title: "I Asked Parliament to Do One Thing",
+        description: "Mongolia's Social Security contribution drains startups before they reach revenue. I asked Parliament to fix just this — one clause, this year.",
+        url: "/articles/parliament-social-security",
       },
     ],
   },
