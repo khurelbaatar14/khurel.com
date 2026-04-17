@@ -2,9 +2,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "What Mongolia Can Learn from Kazakhstan's Startup Playbook | Khurelbaatar",
+  title: "Mongolia's Startup Policy Is Years Behind. Here's the Data. | Khurelbaatar",
   description:
-    "Kazakhstan built a world-class startup ecosystem in under a decade. Mongolia has the same opportunity — if we stop studying and start copying what works.",
+    "Kazakhstan built a functioning startup ecosystem with clear tax policy and measurable targets. Mongolia has neither. The gap is widening.",
 };
 
 export default function Article() {
@@ -26,11 +26,11 @@ export default function Article() {
             Startup Ecosystem
           </span>
           <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight">
-            What Mongolia Can Learn from Kazakhstan&apos;s Startup Playbook
+            Mongolia&apos;s Startup Policy Is Years Behind. Here&apos;s the Data.
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Kazakhstan built a world-class startup ecosystem in under a decade. Mongolia has the same
-            opportunity — if we stop studying and start copying what works.
+            Kazakhstan built a functioning startup ecosystem with clear tax policy and measurable targets.
+            Mongolia has neither. The gap is widening.
           </p>
           <div className="flex items-center gap-3 pt-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-xs font-bold">
@@ -89,25 +89,22 @@ export default function Article() {
           <p>I want to save them some time.</p>
 
           <p>
-            You don&apos;t need to send delegations to distant countries. Our neighbor to the west —
-            Kazakhstan — has already built exactly what we&apos;re trying to build. The blueprint is
-            right next door.
+            Kazakhstan — our neighbor to the west — has already done it. The data is public.
+            The model is documented. There is no reason to spend months on research trips.
           </p>
 
           <h2>The Astana Hub Story</h2>
 
           <p>
-            I spent four months working out of Astana a couple of years ago. What struck me
-            immediately was the concentration: the Ministry of Digital Development sitting right next
-            to the IT hub, universities training the next generation of engineers, and an entire
-            ecosystem operating under one roof.
+            I spent four months working out of Astana. What was immediately visible was the
+            structure: the Ministry of Digital Development co-located with the IT hub, universities
+            feeding engineers directly into the pipeline, all of it operating under one roof.
           </p>
 
           <p>
-            Astana Hub wasn&apos;t born overnight. In 2016, the idea was pitched to the Prime
-            Minister. By 2017, the first hackathons were running. What I find remarkable
-            isn&apos;t just the speed — it&apos;s that concrete, measurable targets were set and
-            actually pursued.
+            Astana Hub started in 2016 — a proposal to the Prime Minister. By 2017, the first
+            hackathons were running. The notable part isn&apos;t the speed. It&apos;s that they set
+            concrete, measurable targets and tied people to them.
           </p>
 
           <p>Their KPIs for 2026:</p>
@@ -141,7 +138,7 @@ export default function Article() {
             revenue, you contribute a fraction back to the ecosystem that supported you.
           </p>
 
-          <p>The model is self-sustaining. The ecosystem feeds itself.</p>
+          <p>The revenue loop is built into the structure from day one.</p>
 
           <h2>Mongolia&apos;s Digital Strategy: Goals Without Teeth</h2>
 
@@ -171,18 +168,18 @@ export default function Article() {
             costs before reaching the market.
           </p>
 
-          <h2>The Urgency — and the Opportunity</h2>
+          <h2>The Cost of Delay</h2>
 
           <p>
-            Kazakhstan started in 2016. We are years behind. But here is the thing about being
-            behind: you get to skip the mistakes.
+            Kazakhstan started in 2016. Mongolia is years behind. Being late means the competitive
+            gap compounds — every year without a clear tax framework is another year founders leave
+            or never start.
           </p>
 
           <p>
-            We do not need to invent anything. We do not need months of &ldquo;international
-            experience research.&rdquo; Kazakhstan&apos;s IT Park representatives have already come
-            to Mongolia. They want to engage with our ecosystem. The knowledge transfer is available
-            if we reach for it.
+            There is no original research required here. Kazakhstan&apos;s IT Park representatives
+            have already visited Mongolia. The policy documents are available. The question is
+            whether anyone in government will act on them.
           </p>
 
           <p>
