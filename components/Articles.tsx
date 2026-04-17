@@ -42,6 +42,16 @@ const articles: Article[] = [
     url: "/articles/parliament-social-security",
     thumbnail: undefined,
   },
+  {
+    badge: "Ecosystem",
+    badgeClass: "bg-orange-500/10 text-orange-600",
+    title: "We Became an IT Park Uzbekistan Resident. Here's Why That Indicts Mongolia.",
+    description:
+      "OnePlaceHR Technologies now pays zero tax until 2040 through IT Park Uzbekistan. The business logic for routing investment there instead of Mongolia writes itself.",
+    date: "Nov 6, 2025",
+    url: "/articles/itpark-uzbekistan",
+    thumbnail: undefined,
+  },
 ];
 
 export default function Articles() {
