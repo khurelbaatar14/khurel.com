@@ -74,13 +74,14 @@ export const Component = () => {
           {/* Intro row: avatar + greeting */}
           <div className="flex items-center justify-center gap-4 pointer-events-none">
             {/* Circular avatar */}
-            <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/20 shadow-lg">
-              <img
-                src="/photos/avatar.png"
-                alt="Khurelbaatar"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
+            <div
+              className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/20 shadow-lg bg-muted"
+              style={{
+                backgroundImage: "url(/photos/avatar.png)",
+                backgroundSize: "cover",
+                backgroundPosition: "center top",
+              }}
+            />
             {/* Greeting text */}
             <p className="text-left text-base md:text-lg text-muted-foreground font-light leading-relaxed">
               Hi, my name is{" "}

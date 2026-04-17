@@ -43,13 +43,11 @@ export default function Article() {
 
         {/* Slide image */}
         <div className="rounded-xl overflow-hidden mb-10 bg-zinc-900">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/photos/tax-slide.png"
             alt="Tax comparison slide: Astana Hub 0%, IT Park Uzbekistan 7.5%, Mongolia 59%"
             className="w-full"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
           />
           <div className="p-4 text-center">
             <p className="text-xs text-zinc-400">
