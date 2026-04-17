@@ -50,7 +50,7 @@ const articles: Article[] = [
       "OnePlaceHR Technologies now pays zero tax until 2040 through IT Park Uzbekistan. The business logic for routing investment there instead of Mongolia writes itself.",
     date: "Nov 6, 2025",
     url: "/articles/itpark-uzbekistan",
-    thumbnail: undefined,
+    thumbnail: "/photos/itparkuz1.png",
   },
   {
     badge: "Politics",

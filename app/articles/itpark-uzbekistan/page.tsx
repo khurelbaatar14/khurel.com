@@ -44,6 +44,26 @@ export default function Article() {
           </div>
         </div>
 
+        {/* Photos */}
+        <div className="grid grid-cols-2 gap-3 mb-10">
+          <div className="rounded-xl overflow-hidden aspect-[4/3] bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/itparkuz1.png"
+              alt="IT Park Uzbekistan"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="rounded-xl overflow-hidden aspect-[4/3] bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/itparkuz2.png"
+              alt="IT Park Uzbekistan"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
         {/* Resident badge */}
         <div className="mb-10 rounded-xl border border-border bg-muted/30 px-6 py-5 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0">
