@@ -57,16 +57,16 @@ export default function Article() {
             <div className="rounded-xl overflow-hidden aspect-[3/4] bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/photos/pm-audience.png"
-                alt="Audience at the event with the Prime Minister"
+                src="/photos/pm-speaking.png"
+                alt="Khurelbaatar speaking on stage"
                 className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="rounded-xl overflow-hidden aspect-[3/4] bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/photos/pm-speaking.png"
-                alt="Khurelbaatar speaking on stage"
+                src="/photos/pm-audience.png"
+                alt="Audience at the event with the Prime Minister"
                 className="w-full h-full object-cover object-top"
               />
             </div>
