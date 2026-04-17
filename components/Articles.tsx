@@ -23,7 +23,7 @@ const categories: Category[] = [
     title: "Startup Ecosystem in Mongolia",
     excerpt:
       "Mongolia's startup scene is quietly transforming. From fintech to agritech, a new generation of founders is building for a market the world is only just beginning to notice.",
-    accent: "from-orange-500 to-red-500",
+    accent: "from-zinc-800 to-zinc-900",
     badgeClass: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
     articles: [
       {
@@ -52,7 +52,7 @@ const categories: Category[] = [
     title: "My Son's Development",
     excerpt:
       "Notes from the front lines of fatherhood — watching a little human learn language, form opinions, and discover the world one curious question at a time.",
-    accent: "from-blue-500 to-indigo-500",
+    accent: "from-zinc-800 to-zinc-900",
     badgeClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     articles: [
       {
@@ -81,7 +81,7 @@ const categories: Category[] = [
     title: "My Political Views",
     excerpt:
       "How should a small, landlocked country navigate the tension between democracy and development? My honest, evolving thoughts on governance, reform, and civic responsibility.",
-    accent: "from-emerald-500 to-teal-500",
+    accent: "from-zinc-800 to-zinc-900",
     badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     articles: [
       {
