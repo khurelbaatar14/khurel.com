@@ -47,25 +47,31 @@ export default function Article() {
           </div>
         </div>
 
-        {/* Photo */}
-        <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
+        {/* Photo with annotation */}
+        <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/photos/parliament2.jpeg"
             alt="Meeting with Parliament members"
             className="w-full h-full object-cover"
           />
-        </div>
-
-        {/* YouTube embed */}
-        <div className="mb-10 rounded-xl overflow-hidden aspect-video bg-muted">
-          <iframe
-            src="https://www.youtube.com/embed/BcPkXLYu_e0"
-            title="Parliament Meeting on Social Security"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-          />
+          {/* SVG annotation overlay */}
+          <svg
+            viewBox="0 0 1600 900"
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Circle around Khurelbaatar */}
+            <circle cx="1220" cy="390" r="62" fill="none" stroke="#ef4444" strokeWidth="5" />
+            {/* Arrow line */}
+            <line x1="1340" y1="230" x2="1268" y2="338" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+            {/* Arrowhead */}
+            <polygon points="1268,338 1255,310 1290,318" fill="#ef4444" />
+            {/* Label background */}
+            <rect x="1290" y="175" width="220" height="52" rx="8" fill="#ef4444" />
+            {/* Label text */}
+            <text x="1400" y="207" textAnchor="middle" fill="white" fontSize="30" fontWeight="700" fontFamily="system-ui, sans-serif">This is me</text>
+          </svg>
         </div>
 
         <hr className="border-border mb-12" />
@@ -130,6 +136,21 @@ export default function Article() {
             This is not a story about one company. It is the default failure mode for early-stage
             startups in Mongolia.
           </p>
+
+        </article>
+
+        {/* YouTube embed */}
+        <div className="my-10 rounded-xl overflow-hidden aspect-video bg-muted">
+          <iframe
+            src="https://www.youtube.com/embed/BcPkXLYu_e0"
+            title="Parliament Meeting on Social Security"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        </div>
+
+        <article className="prose prose-zinc dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-base prose-headings:font-bold prose-headings:tracking-tight">
 
           <h2>What Reimbursement Would Do</h2>
 
