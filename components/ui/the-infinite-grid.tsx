@@ -70,17 +70,30 @@ export const Component = () => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-3xl mx-auto space-y-6">
-        <div className="space-y-4 pointer-events-none">
-          <p className="text-base md:text-lg text-muted-foreground font-light leading-relaxed">
-            Hi, my name is{" "}
-            <span className="text-foreground font-semibold">Khurelbaatar</span>
-            , but you can call me{" "}
-            <span className="text-foreground font-semibold">Khurel</span>.
-          </p>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
+        <div className="space-y-4">
+          {/* Intro row: avatar + greeting */}
+          <div className="flex items-center justify-center gap-4 pointer-events-none">
+            {/* Circular avatar */}
+            <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/20 shadow-lg">
+              <img
+                src="/photos/avatar.png"
+                alt="Khurelbaatar"
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+            {/* Greeting text */}
+            <p className="text-left text-base md:text-lg text-muted-foreground font-light leading-relaxed">
+              Hi, my name is{" "}
+              <span className="text-foreground font-semibold">Khurelbaatar</span>
+              ,{" "}but you can call me{" "}
+              <span className="text-foreground font-semibold">Khurel</span>.
+            </p>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground drop-shadow-sm pointer-events-none">
             Welcome to my<br />personal web.
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground tracking-widest uppercase">
+          <p className="text-sm md:text-base text-muted-foreground tracking-widest uppercase pointer-events-none">
             engineer. entrepreneur
           </p>
         </div>
