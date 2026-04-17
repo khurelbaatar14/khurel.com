@@ -16,6 +16,7 @@ type FormData = {
 export default function Connect() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
 
   const {
     register,
@@ -26,16 +27,22 @@ export default function Connect() {
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
+    setError(false);
     try {
-      await fetch("/api/contact", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      setSubmitted(true);
-      reset();
+      const json = await res.json();
+      if (json.ok) {
+        setSubmitted(true);
+        reset();
+      } else {
+        setError(true);
+      }
     } catch {
-      // fail silently — user sees the form again on next attempt
+      setError(true);
     } finally {
       setSubmitting(false);
     }
@@ -124,6 +131,15 @@ export default function Connect() {
             <Send className="w-4 h-4" />
             {submitting ? "Sending…" : "Send Message"}
           </Button>
+
+          {error && (
+            <p className="text-sm text-destructive text-center">
+              Something went wrong. Please try again or email me directly at{" "}
+              <a href="mailto:khurel@oneplace.hr" className="underline">
+                khurel@oneplace.hr
+              </a>
+            </p>
+          )}
         </form>
       )}
     </div>
