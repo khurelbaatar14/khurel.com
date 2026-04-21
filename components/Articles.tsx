@@ -15,6 +15,16 @@ const articles: Article[] = [
   {
     badge: "Ecosystem",
     badgeClass: "bg-orange-500/10 text-orange-600",
+    title: "The McKinsey Game I Failed — And What I Built After",
+    description:
+      "I didn't get into McKinsey. But the game they made me play unlocked a question I couldn't let go: why does nobody else hire this way? That question became OnePlaceHR.",
+    date: "2026",
+    url: "/articles/how-oneplacehr-started",
+    thumbnail: undefined,
+  },
+  {
+    badge: "Ecosystem",
+    badgeClass: "bg-orange-500/10 text-orange-600",
     title: "Mongolia's Startup Policy Is Years Behind. Here's the Data.",
     description:
       "Kazakhstan built a functioning startup ecosystem with clear tax policy and measurable targets. Mongolia has neither. The gap is widening.",
