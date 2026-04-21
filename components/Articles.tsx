@@ -20,7 +20,7 @@ const articles: Article[] = [
       "I didn't get into McKinsey. But the game they made me play unlocked a question I couldn't let go: why does nobody else hire this way? That question became OnePlaceHR.",
     date: "2026",
     url: "/articles/how-oneplacehr-started",
-    thumbnail: undefined,
+    thumbnail: "https://img.youtube.com/vi/f5riF9FavnI/maxresdefault.jpg",
   },
   {
     badge: "Ecosystem",
