@@ -15,7 +15,7 @@ const articles: Article[] = [
   {
     badge: "Ecosystem",
     badgeClass: "bg-orange-500/10 text-orange-600",
-    title: "The McKinsey Game I Failed — And What I Built After",
+    title: "Pecha Kucha at National University of Mongolia",
     description:
       "I didn't get into McKinsey. But the game they made me play unlocked a question I couldn't let go: why does nobody else hire this way? That question became OnePlaceHR.",
     date: "2026",

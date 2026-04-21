@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "The McKinsey Game I Failed — And What I Built After | Khurelbaatar",
+  title: "Pecha Kucha at National University of Mongolia | Khurelbaatar",
   description:
     "I didn't get into McKinsey. But the game they made me play unlocked a question I couldn't let go: why does nobody else hire this way? That question became OnePlaceHR.",
   openGraph: {
@@ -30,7 +30,7 @@ export default function Article() {
             Startup Ecosystem
           </span>
           <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight">
-            The McKinsey Game I Failed — And What I Built After
+            Pecha Kucha at National University of Mongolia
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed">
             I didn&apos;t get into McKinsey. But the game they made me play unlocked a question I
