@@ -68,6 +68,15 @@ const cards: PressCard[] = [
     accentBg: "bg-orange-600",
   },
   {
+    id: "unread",
+    label: "UNREAD",
+    name: "How I Work",
+    subtitle: "with Khurelbaatar",
+    url: "https://unread.today/c/hiw-khurelbaatarbat",
+    dark: true,
+    accentBg: "bg-amber-600",
+  },
+  {
     id: "tengertv",
     label: "TENGER TV",
     name: "TENGER\nTV",
