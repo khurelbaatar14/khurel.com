@@ -39,8 +39,8 @@ export default function WhatIDo() {
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">What I Do Now</h2>
-        <p className="text-muted-foreground text-lg">A glimpse into my current life and work</p>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Одоо юу хийж байна</h2>
+        <p className="text-muted-foreground text-lg">Миний өнөөгийн амьдрал, ажлаас хэсэг</p>
       </div>
 
       <div className="relative w-full max-w-sm">
@@ -73,14 +73,14 @@ export default function WhatIDo() {
         <button
           onClick={() => paginate(-1)}
           className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-black/10 rounded-full p-2 shadow-md transition-all z-10"
-          aria-label="Previous"
+          aria-label="Өмнөх"
         >
           <ChevronLeft className="w-5 h-5 text-black" />
         </button>
         <button
           onClick={() => paginate(1)}
           className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border border-black/10 rounded-full p-2 shadow-md transition-all z-10"
-          aria-label="Next"
+          aria-label="Дараах"
         >
           <ChevronRight className="w-5 h-5 text-black" />
         </button>
@@ -92,7 +92,7 @@ export default function WhatIDo() {
           <button
             key={i}
             onClick={() => setPage([i, i > index ? 1 : -1])}
-            aria-label={`Go to slide ${i + 1}`}
+            aria-label={`${i + 1}-р зураг`}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               i === index ? "bg-primary w-6" : "bg-muted-foreground/30 w-1.5"
             }`}

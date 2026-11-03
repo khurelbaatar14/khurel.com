@@ -51,22 +51,22 @@ export default function Connect() {
   return (
     <div className="w-full flex flex-col items-center gap-10">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Let&apos;s Connect</h2>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Холбоо барих</h2>
         <p className="text-muted-foreground text-lg">
-          Reach out — I read every message personally.
+          Бичээрэй — ирсэн мессеж бүрийг би өөрөө уншдаг.
         </p>
       </div>
 
       {submitted ? (
         <div className="flex flex-col items-center gap-4 py-10 text-center">
           <CheckCircle className="w-14 h-14 text-emerald-500" />
-          <p className="text-xl font-semibold">Message received!</p>
-          <p className="text-muted-foreground">I&apos;ll get back to you soon.</p>
+          <p className="text-xl font-semibold">Мессеж хүлээн авлаа!</p>
+          <p className="text-muted-foreground">Удахгүй хариу бичнэ.</p>
           <button
             onClick={() => setSubmitted(false)}
             className="text-sm text-primary hover:underline mt-2"
           >
-            Send another message
+            Дахин мессеж илгээх
           </button>
         </div>
       ) : (
@@ -76,12 +76,12 @@ export default function Connect() {
         >
           <div className="flex flex-col gap-1.5">
             <label htmlFor="name" className="text-sm font-medium">
-              Name
+              Нэр
             </label>
             <Input
               id="name"
-              placeholder="Your name"
-              {...register("name", { required: "Name is required" })}
+              placeholder="Таны нэр"
+              {...register("name", { required: "Нэрээ оруулна уу" })}
               className={errors.name ? "border-destructive" : ""}
             />
             {errors.name && (
@@ -91,17 +91,17 @@ export default function Connect() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              Имэйл
             </label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               {...register("email", {
-                required: "Email is required",
+                required: "Имэйлээ оруулна уу",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Enter a valid email address",
+                  message: "Зөв имэйл хаяг оруулна уу",
                 },
               })}
               className={errors.email ? "border-destructive" : ""}
@@ -113,13 +113,13 @@ export default function Connect() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="message" className="text-sm font-medium">
-              Message
+              Мессеж
             </label>
             <Textarea
               id="message"
-              placeholder="What's on your mind?"
+              placeholder="Юу бодож байна?"
               rows={5}
-              {...register("message", { required: "Message is required" })}
+              {...register("message", { required: "Мессежээ бичнэ үү" })}
               className={errors.message ? "border-destructive" : ""}
             />
             {errors.message && (
@@ -129,12 +129,12 @@ export default function Connect() {
 
           <Button type="submit" disabled={submitting} className="w-full gap-2">
             <Send className="w-4 h-4" />
-            {submitting ? "Sending…" : "Send Message"}
+            {submitting ? "Илгээж байна…" : "Илгээх"}
           </Button>
 
           {error && (
             <p className="text-sm text-destructive text-center">
-              Something went wrong. Please try again or email me directly at{" "}
+              Алдаа гарлаа. Дахин оролдох эсвэл шууд имэйлээр бичнэ үү:{" "}
               <a href="mailto:khurel@oneplace.hr" className="underline">
                 khurel@oneplace.hr
               </a>

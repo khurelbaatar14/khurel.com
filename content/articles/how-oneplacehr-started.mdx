@@ -1,143 +1,148 @@
 export const meta = {
-  title: "Pecha Kucha at National University of Mongolia",
+  title: "Монгол Улсын Их Сургуульд тавьсан Pecha Kucha илтгэл",
   description:
-    "I didn't get into McKinsey. But the game they made me play unlocked a question I couldn't let go: why does nobody else hire this way? That question became OnePlaceHR.",
+    "Би McKinsey-д тэнцээгүй. Гэвч тэдний надад тоглуулсан тоглоом толгойноосоо гаргаж чадахгүй нэг асуултыг төрүүлсэн: яагаад өөр хэн ч ингэж ажилд авдаггүй юм бэ? Тэр асуулт OnePlaceHR болсон.",
   date: "2026",
-  category: "Startup Ecosystem",
+  category: "Стартап экосистем",
   cover: "https://img.youtube.com/vi/f5riF9FavnI/maxresdefault.jpg",
 };
 
-<YouTube id="f5riF9FavnI" title="How OnePlaceHR Started — Speech at Labor Forum" />
+<YouTube id="f5riF9FavnI" title="OnePlaceHR хэрхэн эхэлсэн бэ — Хөдөлмөрийн форум дээр хэлсэн үг" />
 
 ---
 
-I spent four years working at two companies before going independent. During COVID, I
-completed the implementation of a Palantir system for a client — one of the largest
-enterprise platforms in the world — and then started thinking seriously about what came
-next.
+Бие даан ажиллахаасаа өмнө би хоёр компанид дөрвөн жил ажилласан. Цар тахлын үеэр нэг
+харилцагчдаа Palantir системийг нэвтрүүлэх ажлыг дуусгасан — энэ бол томоохон
+байгууллагуудад зориулсан дэлхийн хамгийн том платформуудын нэг — тэгээд дараа нь юу
+хийх вэ гэдгээ нухацтай бодож эхэлсэн.
 
-I wanted to work at a global company. Google was on the list. I applied to many places
-and kept failing the first CV screening round. Then McKinsey contacted me.
+Би дэлхийн хэмжээний компанид ажиллахыг хүсэж байсан. Google ч жагсаалтад байсан. Олон
+газар өргөдөл гаргасан ч CV шүүлтийн эхний шатандаа л унаад байлаа. Тэгтэл McKinsey
+надтай холбогдсон.
 
-## The Game
+## Тоглоом
 
-McKinsey does not just review your CV. They send you a link. You click it, and a game
-appears — one hour, no right or wrong answers. Just a series of simulations and
-decision-making scenarios. You complete it, submit it, and wait.
+McKinsey зөвхөн CV хараад өнгөрдөггүй. Тэд холбоос илгээдэг. Түүн дээр дарахад тоглоом
+гарч ирнэ — нэг цаг, зөв буруу хариулт гэж байхгүй. Зүгээр л цуврал симуляци, шийдвэр
+гаргах нөхцөл байдлууд. Дуусгаад, илгээгээд, хүлээнэ.
 
-I made it to the final rounds. I met with senior leaders. I did not get the offer — I
-never expected to. McKinsey has always pulled heavily from Harvard and equivalent
-brands. But I left that process with a question I could not shake: _why doesn't
-every company hire this way?_
+Би эцсийн шатуудад хүрсэн. Ахлах удирдлагуудтай уулзсан. Ажлын санал аваагүй — угаасаа
+хүлээгээгүй. McKinsey үргэлж Harvard болон түүнтэй ижил түвшний нэр хүндтэй
+сургуулиудаас голчлон хүн авдаг. Гэхдээ би тэр үйл явцаас толгойноосоо гаргаж чадахгүй
+нэг асуулттай гарсан: _яагаад бүх компани ингэж ажилд авдаггүй юм бэ?_
 
-So I started digging.
+Тэгээд би ухаж төнхөж эхэлсэн.
 
-## The Research Behind the Game
+## Тоглоомын цаана байгаа судалгаа
 
-It turns out McKinsey's game is not arbitrary. It is backed by 85 years of
-research data on what actually predicts job performance. The findings are clear and
-largely ignored by most hiring processes:
+McKinsey-ийн тоглоом зүгээр дур зоргоороо зохиосон зүйл биш болж таарсан. Түүний цаана
+ажлын гүйцэтгэлийг юу бодитоор урьдчилан таамагладаг талаарх 85 жилийн судалгааны
+өгөгдөл бий. Дүгнэлт нь тодорхой, гэвч ажилд авах ихэнх үйл явц үүнийг үндсэндээ үл
+тоомсорлодог:
 
 <CardGrid>
-  <Stat value="13%" label="Correlation between CV quality and actual job performance" />
-  <Stat value="60%+" label="Correlation between cognitive ability and job performance" highlight />
+  <Stat value="13%" label="CV-ийн чанар ба бодит ажлын гүйцэтгэлийн хоорондох хамаарал" />
+  <Stat value="60%+" label="Танин мэдэхүйн чадвар ба ажлын гүйцэтгэлийн хоорондох хамаарал" highlight />
 </CardGrid>
 
-Your CV — how it looks, how it is written, the institutions it lists — predicts only
-13% of how well you will actually perform at work. Cognitive ability: attention,
-working memory, problem-solving speed — predicts over 60%. McKinsey knew this. Most
-hiring managers did not.
+CV — түүний харагдах байдал, бичигдсэн хэлбэр, дурдсан байгууллагууд — хүний ажил дээрх
+бодит гүйцэтгэлийн ердөө 13%-ийг л урьдчилан таамагладаг. Танин мэдэхүйн чадвар —
+анхаарал, ажлын санах ой, асуудал шийдэх хурд — 60%-иас илүүг таамагладаг. McKinsey
+үүнийг мэдэж байсан. Ажилд авах менежерүүдийн ихэнх нь мэдээгүй.
 
-I found the professors who wrote the research behind McKinsey's assessment. I
-cold-emailed them. They wrote back. We spent three months doing our own research into
-how cognitive ability can be measured reliably, then built our own simulation-based
-assessment — no right or wrong answers, just behavioral and problem-solving patterns
-— and tested it across four or five rounds in Mongolia, achieving strong Cronbach's
-alpha (statistical reliability) each time.
+Би McKinsey-ийн үнэлгээний цаана байгаа судалгааг бичсэн профессоруудыг олсон. Огт
+танихгүй байж тэдэнд имэйл бичсэн. Тэд хариу бичсэн. Бид танин мэдэхүйн чадварыг хэрхэн
+найдвартай хэмжиж болох талаар гурван сар өөрсдөө судалгаа хийж, дараа нь симуляцид
+суурилсан өөрсдийн үнэлгээг бүтээсэн — зөв буруу хариулт байхгүй, зөвхөн зан төлөв болон
+асуудал шийдэх хэв маяг — тэгээд Монголд дөрөв, таван шатаар туршиж, удаа бүр Кронбахын
+альфа (статистик найдвартай байдал) өндөр гарсан.
 
-That became the foundation of OnePlaceHR.
+OnePlaceHR яг энэ суурин дээр бий болсон.
 
-## What We Built
+## Бидний бүтээсэн зүйл
 
-OnePlaceHR is an AI-powered recruitment platform for the Mongolian market. Instead of
-giving companies a pile of CVs, we give them a ranked shortlist of candidates who have
-already been pre-screened through AI interview simulations.
+OnePlaceHR бол Монголын зах зээлд зориулсан, AI-д суурилсан ажилд авах платформ. Бид
+компаниудад овоо CV өгөхийн оронд AI ярилцлагын симуляциар урьдчилан шүүгдсэн
+горилогчдын эрэмбэлсэн богино жагсаалтыг өгдөг.
 
-The platform now operates in Mongolia, Kazakhstan, and Uzbekistan. In the past year,
-we have conducted thousands of AI interviews across those markets. Companies like Nomin
-Holdings use it to find candidates through social channels — someone clicks a link in
-Facebook, Instagram, or Telegram, enters the AI interview flow, and gets placed if they
-qualify. No HR person involved until the final stage.
+Платформ маань одоо Монгол, Казахстан, Узбекистанд ажиллаж байна. Өнгөрсөн нэг жилд бид
+эдгээр зах зээлд олон мянган AI ярилцлага хийсэн. Номин Холдинг зэрэг компаниуд үүнийг
+ашиглан сошиал сувгуудаар горилогч олдог — хэн нэгэн Facebook, Instagram эсвэл Telegram
+дээрх холбоос дээр дарж, AI ярилцлагад орж, шаардлага хангавал ажилд орно. Эцсийн шат
+хүртэл хүний нөөцийн ажилтан оролцохгүй.
 
-We are a team of three engineers. We are valued at $3 million.
+Бид гурван инженерээс бүрдсэн баг. Компанийн маань үнэлгээ $3 сая.
 
-## How We Actually Work: Three Tools
+## Бид бодитоор хэрхэн ажилладаг вэ: гурван хэрэгсэл
 
-I was asked to share how a small team builds and operates at this scale. The honest
-answer is three things.
+Жижиг баг ийм цар хүрээнд хэрхэн бүтээж, ажиллаж байгааг хуваалцаач гэж надаас хүссэн.
+Үнэнийг хэлэхэд гурван зүйл.
 
 ### 1. Claude Code
 
-Our three engineers have not used ChatGPT or any other AI coding tool for over a year.
-We use Claude Code exclusively. When I open my laptop, Claude Code is the first thing
-that loads. Two engineers, with Claude Code, can do the work of twenty. That is not
-an exaggeration — it is what we observe in our own output. If you are building a
-technology company today, learning Claude Code is not optional.
+Манай гурван инженер нэг жил гаруйн хугацаанд ChatGPT болон өөр ямар ч AI код бичих
+хэрэгсэл ашиглаагүй. Бид зөвхөн Claude Code ашигладаг. Зөөврийн компьютерээ нээхэд
+хамгийн түрүүнд Claude Code ачаалагддаг. Claude Code ашигладаг хоёр инженер хорин хүний
+ажлыг хийж чадна. Энэ хэтрүүлэг биш — бид үүнийг өөрсдийн гүйцэтгэл дээр харж байна.
+Өнөөдөр технологийн компани байгуулж байгаа бол Claude Code сурах нь сонголт биш.
 
-### 2. Personal AI Agents
+### 2. Хувийн AI агентууд
 
-I have two agents running inside Telegram that work for me every day. The first one
-monitors the Mongolian labor market — every morning it sends me a research brief on
-what is happening: which companies are hiring, what roles are in demand, any signals
-worth acting on.
+Надад Telegram дотор ажилладаг хоёр агент бий — тэд өдөр бүр миний төлөө ажилладаг.
+Эхнийх нь Монголын хөдөлмөрийн зах зээлийг хянадаг — өглөө бүр юу болж байгаа талаар
+товч судалгааны тойм илгээдэг: ямар компаниуд ажилтан авч байна, ямар албан тушаалын
+эрэлт өндөр байна, анхаарч арга хэмжээ авах ёстой ямар дохио байна.
 
-The second one drafts formal documents. When I need an official letter to a government
-body, a contract with a partner, or a response to a tax office — I describe what I
-need in Telegram, and it drafts it. I review, sign, send. Tasks that used to require
-an admin or a lawyer are handled in minutes.
+Хоёр дахь нь албан бичгийн төсөл бэлтгэдэг. Төрийн байгууллагад илгээх албан бичиг,
+түнштэй байгуулах гэрээ, эсвэл татварын албанд өгөх хариу хэрэгтэй бол би юу
+хэрэгтэйгээ Telegram дээр тайлбарлахад тэр төслийг нь гаргаад өгнө. Би хянана, гарын
+үсэг зурна, илгээнэ. Өмнө нь захиргааны ажилтан эсвэл хуульч шаарддаг байсан ажил
+хэдхэн минутад шийдэгддэг.
 
-Since January 2026, the technology for personal agents has become genuinely reliable.
-OpenAI and Anthropic both pushed major updates in this direction. The entire tech
-industry moved fast. A startup in 2026 does not need separate staff for marketing
-research, content, or administrative correspondence. Agents handle it.
+2026 оны нэгдүгээр сараас хойш хувийн агентуудын технологи үнэхээр найдвартай болсон.
+OpenAI, Anthropic хоёулаа энэ чиглэлд томоохон шинэчлэлүүд гаргасан. Технологийн салбар
+бүхэлдээ хурдацтай урагшилсан. 2026 онд стартапт маркетингийн судалгаа, контент,
+захиргааны албан захидал харилцаанд тусдаа ажилтан хэрэггүй. Агентууд хийчихнэ.
 
-### 3. The Hypothesis Cycle
+### 3. Таамаглалын мөчлөг
 
-Every feature we ship — every change to the platform — goes through the same loop.
-We call it the hypothesis cycle. Facebook, Instagram, and the large tech companies
-have used this for years. Every time you notice a menu change or a new button in an
-app you use, there is a hypothesis test behind it.
+Бидний гаргадаг функц бүр — платформд хийх өөрчлөлт бүр — нэг ижил давталтаар дамждаг.
+Бид үүнийг таамаглалын мөчлөг гэж нэрлэдэг. Facebook, Instagram болон томоохон
+технологийн компаниуд үүнийг олон жил хэрэглэж ирсэн. Хэрэглэдэг апп дээрээ цэс
+өөрчлөгдсөн эсвэл шинэ товч гарч ирснийг анзаарах бүрд цаана нь таамаглалын туршилт
+байдаг.
 
-It works like this: someone on the team has an idea. We write it as a testable
-hypothesis — _“if we add X, we expect Y to happen”_ — then we
-build the minimum version to test it, collect data, and make a decision based on
-what the data shows.
+Энэ ингэж ажилладаг: багийн хэн нэгэнд санаа төрнө. Бид үүнийг шалгаж болохуйц
+таамаглал болгон бичнэ — _„X нэмбэл Y болно гэж бид хүлээж байна“_ — дараа нь туршихад
+хангалттай хамгийн бага хувилбарыг бүтээж, өгөгдөл цуглуулж, өгөгдөл юу харуулж байгаад
+үндэслэн шийдвэр гаргана.
 
-A recent example from our own platform: we were only selling our simulation assessments
-to companies. Someone on the team asked — what if individual users could access the
-assessment themselves and see their own cognitive profile? Hypothesis formed. We
-launched a test. We tracked: 4,000 clicks on the campaign, 3,000 sign-ups, 2,500
-reached the payment page, 200 paid. The data told us the price point was too high for
-individual users. We did not celebrate or mourn — we used it to make the next decision.
+Манай платформ дээрх саяхны нэг жишээ: бид симуляцийн үнэлгээгээ зөвхөн компаниудад
+зардаг байсан. Багийн нэг гишүүн асуусан — хувь хэрэглэгчид өөрсдөө үнэлгээ өгч, өөрийн
+танин мэдэхүйн профайлыг харж болдог бол яах вэ? Таамаглал бий болсон. Бид туршилт
+эхлүүлсэн. Хянаж үзэхэд: кампанит ажил дээр 4,000 даралт, 3,000 бүртгэл, 2,500 хүн
+төлбөрийн хуудас хүртэл очсон, 200 хүн төлсөн. Өгөгдөл үнэ нь хувь хэрэглэгчдэд хэт
+өндөр байгааг харуулсан. Бид баярлаж ч, гуниглаж ч байгаагүй — дараагийн шийдвэрээ
+гаргахад ашигласан.
 
-This is how startups survive. Not by building for months and hoping. By testing fast,
-reading data, and iterating. Every product decision at OnePlaceHR goes through this
-cycle.
+Стартапууд ингэж л амьд үлддэг. Хэдэн сараар бүтээгээд найдаж суухаар биш. Хурдан
+туршиж, өгөгдлөө уншиж, давтан сайжруулж байж. OnePlaceHR дээрх бүтээгдэхүүний шийдвэр
+бүр энэ мөчлөгөөр дамждаг.
 
-## For Students and Young Builders
+## Оюутнууд болон залуу бүтээгчдэд
 
-I was asked what I would tell someone early in their career. Two things.
+Карьерийнхаа эхэнд яваа хүнд юу хэлэх вэ гэж надаас асуусан. Хоёр зүйл.
 
-First — work for someone else before you start something. Not for years and years, but
-enough to understand how organizations function, how to work with people, what
-accountability actually feels like. You learn things on the job that no classroom
-teaches.
+Нэгдүгээрт — өөрийн юм эхлүүлэхээсээ өмнө бусдын компанид ажилла. Олон олон жил биш,
+гэхдээ байгууллага хэрхэн ажилладаг, хүмүүстэй хэрхэн хамтран ажиллах, хариуцлага
+бодитоор ямар мэдрэмж байдгийг ойлгох хэмжээнд. Ажил дээр ямар ч анги танхимд
+заадаггүй зүйлсийг сурдаг.
 
-Second — when you are ready to build, remember that the bar has changed. A one-person
-company can now run like a team of twenty. The tools exist. McKinsey-level cognitive
-assessment, enterprise-grade AI interviews, personal agents that do your research and
-draft your correspondence — all of this is accessible today at a fraction of what it
-cost five years ago.
+Хоёрдугаарт — бүтээхэд бэлэн болсон үедээ босго өөрчлөгдсөн гэдгийг санаарай. Нэг
+хүнтэй компани одоо хорин хүний баг шиг ажиллаж чадна. Хэрэгслүүд нь бэлэн байна.
+McKinsey түвшний танин мэдэхүйн үнэлгээ, том байгууллагын түвшний AI ярилцлага, судалгаа
+хийж, албан захидал бэлтгэдэг хувийн агентууд — энэ бүгдийг өнөөдөр таван жилийн
+өмнөхөөс хамаагүй бага зардлаар ашиглах боломжтой.
 
-The question is not whether you have enough resources. The question is whether you
-have a real problem to solve and the discipline to test your way to the answer.
+Гол асуулт бол нөөц хангалттай байгаа эсэх биш. Гол асуулт бол шийдэх бодит асуудал,
+хариултдаа туршилтаар хүрэх сахилга бат байгаа эсэх.

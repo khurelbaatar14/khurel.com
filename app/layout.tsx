@@ -10,10 +10,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://khurel.com"),
-  title: "Khurelbaatar",
-  description: "Engineer. Entrepreneur. — Personal site of Khurelbaatar.",
+  title: "Хүрэлбаатар",
+  description: "Инженер. Бизнес эрхлэгч. — Хүрэлбаатарын хувийн вэбсайт.",
   openGraph: {
-    siteName: "Khurelbaatar",
+    siteName: "Хүрэлбаатар",
+    locale: "mn_MN",
     images: [{ url: "/photos/avatar.png" }],
   },
   twitter: { card: "summary_large_image" },
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="mn" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-inter)]">
         {children}
       </body>

@@ -14,7 +14,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { meta } = await getArticle((await params).slug);
   return {
-    title: `${meta.title} | Khurelbaatar`,
+    title: `${meta.title} | Хүрэлбаатар`,
     description: meta.description,
     openGraph: meta.cover ? { images: [{ url: meta.cover }] } : undefined,
     twitter: { card: "summary_large_image" },
@@ -32,7 +32,7 @@ export default async function ArticlePage({ params }: Props) {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-12"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          Буцах
         </Link>
 
         <header className="mb-12 space-y-4">
@@ -45,10 +45,10 @@ export default async function ArticlePage({ params }: Props) {
           <p className="text-muted-foreground text-lg leading-relaxed">{meta.description}</p>
           <div className="flex items-center gap-3 pt-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-xs font-bold">
-              K
+              Х
             </div>
             <div>
-              <p className="text-sm font-medium">Khurelbaatar</p>
+              <p className="text-sm font-medium">Хүрэлбаатар</p>
               <p className="text-xs text-muted-foreground">{formatDate(meta.date)}</p>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default async function ArticlePage({ params }: Props) {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to all articles
+          Бүх нийтлэл рүү буцах
         </Link>
       </div>
     </main>

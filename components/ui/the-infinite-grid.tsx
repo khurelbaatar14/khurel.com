@@ -84,18 +84,18 @@ export const Component = () => {
             />
             {/* Greeting text */}
             <p className="text-left text-base md:text-lg text-muted-foreground font-light leading-relaxed">
-              Hi, my name is{" "}
-              <span className="text-foreground font-semibold">Khurelbaatar</span>
-              ,{" "}but you can call me{" "}
-              <span className="text-foreground font-semibold">Khurel</span>, that&apos;s easier.
+              Сайн байна уу, намайг{" "}
+              <span className="text-foreground font-semibold">Хүрэлбаатар</span>
+              {" "}гэдэг. Гэхдээ{" "}
+              <span className="text-foreground font-semibold">Хүрэл</span> гэж дуудаж болно, тэр нь амар.
             </p>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground drop-shadow-sm pointer-events-none">
-            Welcome to my<br />personal web.
+            Миний хувийн<br />вэбсайтад тавтай морил.
           </h1>
           <p className="text-sm md:text-base text-muted-foreground tracking-widest uppercase pointer-events-none">
-            engineer. entrepreneur
+            инженер. бизнес эрхлэгч
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export const Component = () => {
             onClick={() => scrollTo("connect")}
             className="px-8 py-3 bg-secondary text-secondary-foreground font-semibold rounded-md hover:bg-secondary/80 transition-all active:scale-95"
           >
-            Connect
+            Холбогдох
           </button>
         </div>
       </div>

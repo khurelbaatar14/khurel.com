@@ -5,8 +5,8 @@ import ArticleCard from "@/components/ArticleCard";
 import { getArticles } from "@/lib/articles";
 
 export const metadata: Metadata = {
-  title: "Writing | Khurelbaatar",
-  description: "Articles by Khurelbaatar on startups, policy and building in Mongolia.",
+  title: "Нийтлэл | Хүрэлбаатар",
+  description: "Хүрэлбаатарын стартап, төрийн бодлого, Монголд бизнес хөгжүүлэх тухай нийтлэлүүд.",
 };
 
 export default async function ArticlesPage() {
@@ -20,12 +20,12 @@ export default async function ArticlesPage() {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-12"
         >
           <ArrowLeft className="w-4 h-4" />
-          Home
+          Нүүр
         </Link>
 
         <div className="mb-10 space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Writing</h1>
-          <p className="text-muted-foreground text-lg">Things I think about and write about</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Нийтлэл</h1>
+          <p className="text-muted-foreground text-lg">Миний бодож, бичдэг зүйлс</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
