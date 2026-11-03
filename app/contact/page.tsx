@@ -4,13 +4,13 @@ import Connect from "@/components/Connect";
 import { Mail, ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact — Khurelbaatar",
+  title: "Холбоо барих — Хүрэлбаатар",
   description:
-    "Reach out to Khurelbaatar. Product ideas, intros, partnerships, or just to say hello.",
+    "Хүрэлбаатартай холбогдох. Бүтээгдэхүүний санаа, танилцуулга, хамтын ажиллагаа, эсвэл зүгээр л мэндчилгээ.",
   openGraph: {
-    title: "Contact — Khurelbaatar",
+    title: "Холбоо барих — Хүрэлбаатар",
     description:
-      "Reach out to Khurelbaatar. Product ideas, intros, partnerships, or just to say hello.",
+      "Хүрэлбаатартай холбогдох. Бүтээгдэхүүний санаа, танилцуулга, хамтын ажиллагаа, эсвэл зүгээр л мэндчилгээ.",
     images: [{ url: "/photos/avatar.png" }],
   },
   twitter: { card: "summary_large_image" },
@@ -30,7 +30,7 @@ const InstagramIcon = () => (
 
 const channels = [
   {
-    label: "Email",
+    label: "Имэйл",
     handle: "khurel@oneplace.hr",
     href: "mailto:khurel@oneplace.hr",
     icon: <Mail className="w-4 h-4" aria-hidden="true" />,
@@ -58,14 +58,14 @@ export default function ContactPage() {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to home
+          Нүүр хуудас руу буцах
         </Link>
 
         <Connect />
 
         <div className="w-full flex flex-col gap-5">
           <p className="text-sm font-medium tracking-wide uppercase text-muted-foreground text-center">
-            Or find me here
+            Эсвэл эндээс олоорой
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {channels.map(({ label, handle, href, icon }) => (

@@ -35,16 +35,16 @@ const cards: PressCard[] = [
   },
   {
     id: "parliament",
-    label: "PARLIAMENT",
+    label: "УИХ",
     name: "Парламент\nуулзалт",
-    subtitle: "Meeting with MPs",
+    subtitle: "УИХ-ын гишүүдтэй",
     url: "https://www.facebook.com/reel/1598689798054332/?s=single_unit",
     dark: true,
     accentBg: "bg-violet-700",
   },
   {
     id: "ministry",
-    label: "MINISTRY",
+    label: "ЯАМ",
     name: "Цахим хөгжил,\nХарилцаа холбооны яам",
     url: "https://www.facebook.com/watch/?v=1030499651868975",
     dark: false,
@@ -62,7 +62,7 @@ const cards: PressCard[] = [
     id: "unnutech",
     label: "UNNUTECH",
     name: "#3 Serious\nGames",
-    subtitle: "with Khurelbaatar",
+    subtitle: "Хүрэлбаатартай",
     url: "https://www.youtube.com/watch?v=gF_mtyOC__Y",
     dark: true,
     accentBg: "bg-orange-600",
@@ -71,7 +71,7 @@ const cards: PressCard[] = [
     id: "unread",
     label: "UNREAD",
     name: "How I Work",
-    subtitle: "with Khurelbaatar",
+    subtitle: "Хүрэлбаатартай",
     url: "https://unread.today/c/hiw-khurelbaatarbat",
     dark: true,
     accentBg: "bg-amber-600",
@@ -80,7 +80,7 @@ const cards: PressCard[] = [
     id: "tengertv",
     label: "TENGER TV",
     name: "TENGER\nTV",
-    subtitle: "Interview",
+    subtitle: "Ярилцлага",
     url: "https://www.facebook.com/reel/28431001789848237",
     dark: true,
     accentBg: "bg-sky-600",
@@ -203,8 +203,8 @@ export default function MediaPress() {
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-10 px-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Press & Podcasts</h2>
-        <p className="text-muted-foreground text-lg">Where I&apos;ve been featured</p>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Хэвлэл ба подкаст</h2>
+        <p className="text-muted-foreground text-lg">Миний оролцсон ярилцлага, нэвтрүүлгүүд</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

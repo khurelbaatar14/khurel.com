@@ -11,8 +11,8 @@ export default async function Articles() {
   return (
     <div className="max-w-4xl mx-auto flex flex-col items-center gap-10 px-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Writing</h2>
-        <p className="text-muted-foreground text-lg">Things I think about and write about</p>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Нийтлэл</h2>
+        <p className="text-muted-foreground text-lg">Миний бодож, бичдэг зүйлс</p>
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -25,7 +25,7 @@ export default async function Articles() {
         href="/articles"
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
-        All articles
+        Бүх нийтлэл
         <ArrowRight className="w-4 h-4" />
       </Link>
     </div>

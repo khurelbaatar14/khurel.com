@@ -5,8 +5,8 @@ import path from "node:path";
 // adding a file is all it takes to publish (the URL is /articles/<slug>).
 
 export const categories = {
-  "Startup Ecosystem": { badge: "bg-orange-500/10 text-orange-600", text: "text-orange-500" },
-  Politics: { badge: "bg-emerald-500/10 text-emerald-600", text: "text-emerald-600" },
+  "Стартап экосистем": { badge: "bg-orange-500/10 text-orange-600", text: "text-orange-500" },
+  "Улс төр": { badge: "bg-emerald-500/10 text-emerald-600", text: "text-emerald-600" },
 };
 
 export type ArticleMeta = {
@@ -43,14 +43,9 @@ export async function getArticles(): Promise<ArticleSummary[]> {
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/** "2025-06-12" → "2025 оны 6-р сарын 12", "2026-04" → "2026 оны 4-р сар", "2026" → "2026". */
 export function formatDate(date: string) {
   const [y, m, d] = date.split("-").map(Number);
   if (!m) return String(y);
-  const value = new Date(Date.UTC(y, m - 1, d || 1));
-  return value.toLocaleDateString(
-    "en-US",
-    d
-      ? { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }
-      : { month: "long", year: "numeric", timeZone: "UTC" },
-  );
+  return d ? `${y} оны ${m}-р сарын ${d}` : `${y} оны ${m}-р сар`;
 }
