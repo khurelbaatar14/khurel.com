@@ -1,4 +1,5 @@
 import { Component as HeroGrid } from "@/components/ui/the-infinite-grid";
+import Courses from "@/components/Courses";
 import WhatIDo from "@/components/WhatIDo";
 import Articles from "@/components/Articles";
 import MediaPress from "@/components/MediaPress";
@@ -10,6 +11,9 @@ export default function Home() {
       <section id="hero">
         <HeroGrid />
       </section>
+
+      {/* Renders its own <section>, and only once a course is published. */}
+      <Courses />
 
       <section id="what-i-do" className="py-24 px-6">
         <WhatIDo />
