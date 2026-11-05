@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, PlayCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, PlayCircle } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import Account from "@/components/course/Account";
 import LessonList from "@/components/course/LessonList";
+import { isEnrolled } from "@/lib/access";
+import { getUser, loginHref } from "@/lib/auth";
 import { formatPrice, getCourse, getCourses, totalDuration } from "@/lib/courses";
+import { isConfigured } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 type Props = { params: Promise<{ course: string }> };
@@ -31,19 +35,25 @@ export default async function CoursePage({ params }: Props) {
   if (!course) notFound();
 
   const { Content } = course;
-  const preview = course.price === 0 ? course.lessons[0] : course.lessons.find((l) => l.free);
-  const lessonHref = (slug: string) => `/courses/${course.slug}/${slug}`;
+  const [enrolled, user] = await Promise.all([isEnrolled(course), getUser()]);
+  const first = course.lessons[0];
+  const preview = course.lessons.find((l) => l.free);
+  const here = `/courses/${course.slug}`;
+  const lessonHref = (slug: string) => `${here}/${slug}`;
 
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-6 py-16">
-        <Link
-          href="/courses"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-12"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Бүх сургалт
-        </Link>
+        <div className="flex items-center justify-between gap-6 mb-12">
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Бүх сургалт
+          </Link>
+          <Account here={here} />
+        </div>
 
         <header className="mb-10 space-y-4 max-w-2xl">
           <span className="text-xs font-semibold tracking-widest uppercase text-orange-500">Сургалт</span>
@@ -64,11 +74,18 @@ export default async function CoursePage({ params }: Props) {
         <div className="grid gap-10 lg:grid-cols-[1fr_300px] items-start">
           {/* Comes first on phones so the price is visible without scrolling. */}
           <aside id="buy" className="lg:order-2 lg:sticky lg:top-8 rounded-2xl border border-border p-6 space-y-4">
-            <p className="text-3xl font-bold">{formatPrice(course.price)}</p>
+            {enrolled ? (
+              <p className="inline-flex items-center gap-2 font-semibold text-emerald-600">
+                <CheckCircle2 className="w-5 h-5" />
+                Худалдаж авсан
+              </p>
+            ) : (
+              <p className="text-3xl font-bold">{formatPrice(course.price)}</p>
+            )}
 
-            {course.price === 0 ? (
-              preview && (
-                <Link href={lessonHref(preview.slug)} className={cn(buttonVariants({ size: "lg" }), "w-full")}>
+            {enrolled || course.price === 0 ? (
+              first && (
+                <Link href={lessonHref(first.slug)} className={cn(buttonVariants({ size: "lg" }), "w-full")}>
                   Үзэж эхлэх
                 </Link>
               )
@@ -85,6 +102,14 @@ export default async function CoursePage({ params }: Props) {
                   >
                     Үнэгүй хичээл үзэх
                   </Link>
+                )}
+                {isConfigured && !user && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Худалдаж авсан уу?{" "}
+                    <Link href={loginHref(here)} className="font-medium text-foreground underline underline-offset-2">
+                      Нэвтрэх
+                    </Link>
+                  </p>
                 )}
               </>
             )}

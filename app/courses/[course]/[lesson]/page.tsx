@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ArrowLeft, ArrowRight, Clapperboard, Lock } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import Account from "@/components/course/Account";
 import LessonList from "@/components/course/LessonList";
 import { canWatch } from "@/lib/access";
+import { getUser, loginHref } from "@/lib/auth";
 import { signedEmbedUrl } from "@/lib/bunny";
 import { getLesson } from "@/lib/courses";
 import { cn } from "@/lib/utils";
@@ -42,32 +44,50 @@ export default async function LessonPage({ params }: Props) {
   if (!found) notFound();
 
   const { course, lesson, Content, prev, next } = found;
-  const allowed = await canWatch(course, lesson);
+  const [allowed, user] = await Promise.all([canWatch(course, lesson), getUser()]);
   const src = allowed && lesson.video ? signedEmbedUrl(lesson.video) : null;
   const lessonHref = (slug: string) => `/courses/${course.slug}/${slug}`;
+  const here = lessonHref(lesson.slug);
 
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <Link
-          href={`/courses/${course.slug}`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {course.title}
-        </Link>
+        <div className="flex items-center justify-between gap-6 mb-8">
+          <Link
+            href={`/courses/${course.slug}`}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0"
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span className="truncate">{course.title}</span>
+          </Link>
+          <Account here={here} />
+        </div>
 
         <div className="grid gap-10 lg:grid-cols-[1fr_340px] items-start">
           <div className="min-w-0 space-y-8">
             {!allowed ? (
               <Screen icon={Lock} title="Энэ хичээл түгжээтэй">
-                <p className="text-sm text-white/60">Сургалтыг худалдаж авснаар бүх хичээлийг үзэх боломжтой.</p>
-                <Link
-                  href={`/courses/${course.slug}#buy`}
-                  className={cn(buttonVariants({ variant: "secondary" }), "mt-2")}
-                >
-                  Сургалтын тухай
-                </Link>
+                <p className="text-sm text-white/60">
+                  {user
+                    ? "Сургалтыг худалдаж авснаар бүх хичээлийг үзэх боломжтой."
+                    : "Худалдаж авсан бол нэвтэрч үзнэ үү."}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                  {!user && (
+                    <Link href={loginHref(here)} className={buttonVariants({ variant: "secondary" })}>
+                      Нэвтрэх
+                    </Link>
+                  )}
+                  <Link
+                    href={`/courses/${course.slug}#buy`}
+                    className={cn(
+                      buttonVariants({ variant: user ? "secondary" : "outline" }),
+                      !user && "bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white",
+                    )}
+                  >
+                    Сургалтын тухай
+                  </Link>
+                </div>
               </Screen>
             ) : src ? (
               <iframe
