@@ -29,5 +29,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Only the pages that read the session; the rest of the site stays static.
-  matcher: ["/courses/:path*", "/login"],
+  matcher: ["/courses/:path*", "/checkout/:path*", "/login"],
 };

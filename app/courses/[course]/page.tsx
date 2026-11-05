@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Clock, PlayCircle } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import BuyButton from "@/components/checkout/BuyButton";
 import Account from "@/components/course/Account";
 import LessonList from "@/components/course/LessonList";
 import { isEnrolled } from "@/lib/access";
 import { getUser, loginHref } from "@/lib/auth";
 import { formatPrice, getCourse, getCourses, totalDuration } from "@/lib/courses";
+import { isQPayConfigured } from "@/lib/qpay";
 import { isConfigured } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -91,10 +93,16 @@ export default async function CoursePage({ params }: Props) {
               )
             ) : (
               <>
-                <button disabled className={cn(buttonVariants({ size: "lg" }), "w-full")}>
-                  Худалдаж авах
-                </button>
-                <p className="text-xs text-muted-foreground text-center">Төлбөр (QPay) удахгүй нээгдэнэ.</p>
+                {isQPayConfigured ? (
+                  <BuyButton course={course.slug} />
+                ) : (
+                  <>
+                    <button disabled className={cn(buttonVariants({ size: "lg" }), "w-full")}>
+                      Худалдаж авах
+                    </button>
+                    <p className="text-xs text-muted-foreground text-center">Төлбөр (QPay) удахгүй нээгдэнэ.</p>
+                  </>
+                )}
                 {preview && (
                   <Link
                     href={lessonHref(preview.slug)}
