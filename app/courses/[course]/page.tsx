@@ -18,7 +18,7 @@ type Props = { params: Promise<{ course: string }> };
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return (await getCourses()).map((c) => ({ course: c.slug }));
+  return (await getCourses({ unlisted: true })).map((c) => ({ course: c.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: course.description,
     openGraph: course.cover ? { images: [{ url: course.cover }] } : undefined,
     twitter: { card: "summary_large_image" },
+    robots: course.unlisted ? { index: false } : undefined,
   };
 }
 

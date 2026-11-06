@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${found.lesson.title} — ${found.course.title} | Хүрэлбаатар`,
     description: found.course.description,
+    robots: found.course.unlisted ? { index: false } : undefined,
   };
 }
 

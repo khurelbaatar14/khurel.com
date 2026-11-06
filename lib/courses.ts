@@ -14,6 +14,8 @@ export type CourseMeta = {
   cover?: string;
   /** Only `next dev` shows it, so unfinished courses stay off the live site. */
   draft?: boolean;
+  /** Live and buyable, but only by its link: left out of the course list and the home page. */
+  unlisted?: boolean;
 };
 
 export type LessonMeta = {
@@ -65,9 +67,10 @@ export async function getCourse(slug: string) {
   return { slug, ...meta, lessons, Content: mod.default as React.ComponentType };
 }
 
-export async function getCourses() {
+/** Courses to list; `unlisted: true` also returns the ones only reachable by link. */
+export async function getCourses({ unlisted = false } = {}) {
   const all = await Promise.all(fs.readdirSync(dir).map(getCourse));
-  return all.filter((c) => c !== null);
+  return all.filter((c): c is Course => c !== null && (unlisted || !c.unlisted));
 }
 
 export async function getLesson(courseSlug: string, lessonSlug: string) {
