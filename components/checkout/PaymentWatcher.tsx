@@ -6,11 +6,14 @@ import { orderStatus } from "@/app/checkout/actions";
 import { Button } from "@/components/ui/button";
 
 // Watches a pending order until it's paid, then re-renders the page in its paid state.
-// The cheap database read runs every few seconds (QPay's callback flips the status); QPay
-// itself is only asked when the buyer presses the button or comes back from their bank app.
+// Every few seconds it reads the database (QPay's callback flips the status); every third
+// time, and whenever the buyer presses the button or comes back from their bank app, it also
+// asks QPay, in case the callback is late. When the QR expires the page re-renders to offer a
+// new one; a payment that lands after that still counts.
 const POLL_MS = 4000;
+const ASK_EVERY = 3;
 
-export default function PaymentWatcher({ orderId }: { orderId: string }) {
+export default function PaymentWatcher({ orderId, expiresAt }: { orderId: string; expiresAt?: number }) {
   const router = useRouter();
   const [checking, startCheck] = useTransition();
   const [notYet, setNotYet] = useState(false);
@@ -25,14 +28,17 @@ export default function PaymentWatcher({ orderId }: { orderId: string }) {
   );
 
   useEffect(() => {
-    const timer = setInterval(() => check(false), POLL_MS);
+    let tick = 0;
+    const timer = setInterval(() => check(++tick % ASK_EVERY === 0), POLL_MS);
+    const expiry = expiresAt ? setTimeout(() => router.refresh(), Math.max(0, expiresAt - Date.now())) : undefined;
     const onVisible = () => document.visibilityState === "visible" && check(true);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       clearInterval(timer);
+      clearTimeout(expiry);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [check]);
+  }, [check, expiresAt, router]);
 
   return (
     <div className="space-y-2 text-center">
