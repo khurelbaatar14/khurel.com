@@ -3,10 +3,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import BuyButton from "@/components/checkout/BuyButton";
 import PaymentWatcher from "@/components/checkout/PaymentWatcher";
 import { getUser, loginHref } from "@/lib/auth";
 import { formatPrice, getCourse } from "@/lib/courses";
-import { isOrderId } from "@/lib/orders";
+import { invoiceExpiry, isOrderId } from "@/lib/orders";
 import type { BankLink } from "@/lib/qpay";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,43 @@ export const metadata: Metadata = {
 
 type Props = { params: Promise<{ order: string }> };
 
+/** The live invoice: bank-app buttons (phones only, where they open the app) and the QR. */
+function Invoice({ links, qrImage }: { links: BankLink[]; qrImage: string | null }) {
+  return (
+    <>
+      {links.length > 0 && (
+        <div className="md:hidden space-y-3">
+          <p className="text-sm text-muted-foreground">Банкаа сонгоно уу:</p>
+          <div className="grid grid-cols-4 gap-3">
+            {links.map((bank) => (
+              <a key={bank.name} href={bank.link} className="flex flex-col items-center gap-1 text-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={bank.logo} alt="" className="w-12 h-12 rounded-xl border border-border" />
+                <span className="text-[11px] leading-tight text-muted-foreground line-clamp-2">
+                  {bank.description}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {qrImage && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Банкны аппаараа QR кодыг уншуулна уу:</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`data:image/png;base64,${qrImage}`}
+            alt="QPay QR код"
+            className="w-64 h-64 mx-auto rounded-xl border border-border bg-white p-2"
+          />
+          <p className="text-xs text-muted-foreground text-center">QR код 5 минут хүчинтэй.</p>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default async function CheckoutPage({ params }: Props) {
   const { order: id } = await params;
   if (!isOrderId(id)) notFound();
@@ -27,7 +65,7 @@ export default async function CheckoutPage({ params }: Props) {
   const supabase = await createClient();
   const { data: order } = await supabase
     .from("orders")
-    .select("id, course, amount, status, qr_image, links")
+    .select("id, course, amount, status, qr_image, links, created_at")
     .eq("id", id)
     .maybeSingle();
   const course = order && (await getCourse(order.course));
@@ -36,6 +74,7 @@ export default async function CheckoutPage({ params }: Props) {
   const courseHref = `/courses/${course.slug}`;
   const first = course.lessons[0];
   const links = (order.links ?? []) as BankLink[];
+  const { at: expiresAt, expired } = invoiceExpiry(order.created_at);
 
   return (
     <main className="min-h-screen bg-background">
@@ -71,37 +110,19 @@ export default async function CheckoutPage({ params }: Props) {
           <div className="space-y-6">
             <h1 className="text-xl font-bold">QPay-ээр төлөх</h1>
 
-            {/* Bank apps open straight to the invoice; only useful on a phone. */}
-            {links.length > 0 && (
-              <div className="md:hidden space-y-3">
-                <p className="text-sm text-muted-foreground">Банкаа сонгоно уу:</p>
-                <div className="grid grid-cols-4 gap-3">
-                  {links.map((bank) => (
-                    <a key={bank.name} href={bank.link} className="flex flex-col items-center gap-1 text-center">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={bank.logo} alt="" className="w-12 h-12 rounded-xl border border-border" />
-                      <span className="text-[11px] leading-tight text-muted-foreground line-clamp-2">
-                        {bank.description}
-                      </span>
-                    </a>
-                  ))}
+            {expired ? (
+              <div className="rounded-2xl border border-border p-6 space-y-4 text-center">
+                <div className="space-y-1">
+                  <p className="font-semibold">QR кодын хугацаа дууссан</p>
+                  <p className="text-sm text-muted-foreground">QPay-ийн QR код 5 минут хүчинтэй. Шинээр авна уу.</p>
                 </div>
+                <BuyButton course={course.slug} label="Шинэ QR код авах" />
               </div>
+            ) : (
+              <Invoice links={links} qrImage={order.qr_image} />
             )}
 
-            {order.qr_image && (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Банкны аппаараа QR кодыг уншуулна уу:</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`data:image/png;base64,${order.qr_image}`}
-                  alt="QPay QR код"
-                  className="w-64 h-64 mx-auto rounded-xl border border-border bg-white p-2"
-                />
-              </div>
-            )}
-
-            <PaymentWatcher orderId={order.id} />
+            <PaymentWatcher orderId={order.id} expiresAt={expired ? undefined : expiresAt} />
           </div>
         )}
       </div>

@@ -5,8 +5,19 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Checkout: an order row (supabase/migrations: `orders`) with its own QPay invoice. When QPay
 // confirms the invoice is paid, the buyer gets an `enrollments` row and the lessons unlock.
 
-/** A pending order made this recently is reused, so double clicks don't create extra invoices. */
-const REUSE_MS = 30 * 60_000;
+/**
+ * QPay closes a Quick QR invoice about five minutes after it's made (benzin.mn's production
+ * logs: every payment landed within ~3 minutes, none after 5, and banks refused older codes).
+ */
+export const INVOICE_MINUTES = 5;
+/** A pending invoice is handed out again (double click, page reopened) only while 2+ minutes are left. */
+const REUSE_MS = (INVOICE_MINUTES - 2) * 60_000;
+
+/** When an order's QR stops working, as a timestamp, and whether that's passed. */
+export function invoiceExpiry(createdAt: string) {
+  const at = Date.parse(createdAt) + INVOICE_MINUTES * 60_000;
+  return { at, expired: Date.now() >= at };
+}
 /** QPay asks merchants not to call payment/check often. */
 const CHECK_EVERY_MS = 10_000;
 
@@ -38,7 +49,6 @@ export async function openOrder(userId: string, course: Course, origin: string) 
   if (error) throw error;
 
   const invoice = await createInvoice({
-    orderId: order.id,
     amount: course.price,
     description: course.title,
     callbackUrl: `${origin}/api/qpay/callback?order=${order.id}`,
@@ -46,10 +56,10 @@ export async function openOrder(userId: string, course: Course, origin: string) 
   const { error: saveError } = await db
     .from("orders")
     .update({
-      invoice_id: invoice.invoice_id,
-      qr_image: invoice.qr_image,
-      qr_text: invoice.qr_text,
-      links: invoice.urls ?? [],
+      invoice_id: invoice.invoiceId,
+      qr_image: invoice.qrImage,
+      qr_text: invoice.qrText,
+      links: invoice.links,
     })
     .eq("id", order.id);
   if (saveError) throw saveError;
