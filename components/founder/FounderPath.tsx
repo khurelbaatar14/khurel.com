@@ -18,9 +18,10 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
+import Character from "@/components/founder/Character";
 import Orbit, { roleIcons } from "@/components/founder/Orbit";
 import { focus, founderTypes, phases, rewardFor, skills, type FounderType, type Phase, type Quest } from "@/lib/founder";
-import { allTasks, modules, type Module } from "@/lib/founder-course";
+import { allTasks, levelFor, levels, modules, type Module } from "@/lib/founder-course";
 import { cn } from "@/lib/utils";
 
 // Draft: the founder's role, phase, open module and finished tasks live in this browser only
@@ -87,6 +88,15 @@ export default function FounderPath() {
   const done = useMemo(() => new Set(saved.done), [saved.done]);
   const role = founderTypes.find((t) => t.id === saved.role);
   const sparks = allTasks.reduce((sum, q) => sum + (done.has(q.id) ? rewardFor(q, role) : 0), 0);
+  const count = allTasks.filter((q) => done.has(q.id)).length;
+  // The level just reached by finishing a task, shown for a few seconds.
+  const [levelUp, setLevelUp] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (levelUp === null) return;
+    const timer = setTimeout(() => setLevelUp(null), 4500);
+    return () => clearTimeout(timer);
+  }, [levelUp]);
 
   function pick(id: FounderType["id"]) {
     save({ ...saved, role: id });
@@ -103,16 +113,36 @@ export default function FounderPath() {
       <LayoutGroup id={mount}>
         <AnimatePresence key={mount} mode="popLayout" initial={false}>
           {role ? (
-            <Plan key="plan" role={role} saved={saved} done={done} onBack={() => save({ ...saved, role: null })} />
+            <Plan
+              key="plan"
+              role={role}
+              saved={saved}
+              done={done}
+              count={count}
+              onLevelUp={setLevelUp}
+              onBack={() => save({ ...saved, role: null })}
+            />
           ) : (
             <Choose key="choose" onPick={pick} />
           )}
         </AnimatePresence>
       </LayoutGroup>
 
+      <AnimatePresence>
+        {role && levelUp !== null && (
+          <LevelUp key={levelUp} level={levelUp} color={role.color} onClose={() => setLevelUp(null)} />
+        )}
+      </AnimatePresence>
+
       <footer className="relative mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/5 px-4 py-8 text-sm text-white/35 sm:flex-row sm:px-6">
         <p>Ноорог · Явц зөвхөн энэ төхөөрөмж дээр хадгалагдана.</p>
-        <button onClick={() => save(parse(EMPTY))} className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
+        <button
+          onClick={() => {
+            setLevelUp(null);
+            save(parse(EMPTY));
+          }}
+          className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+        >
           <RotateCcw className="size-3.5" />
           Дахин эхлэх
         </button>
@@ -173,6 +203,72 @@ function TopBar({ sparks }: { sparks: number }) {
   );
 }
 
+/** A toast for a new level: the character starts at the old level and changes in front of you. */
+function LevelUp({ level, color, onClose }: { level: number; color: string; onClose: () => void }) {
+  const [shown, setShown] = useState(level - 1);
+  useEffect(() => {
+    const timer = setTimeout(() => setShown(level), 450);
+    return () => clearTimeout(timer);
+  }, [level]);
+
+  return (
+    <motion.button
+      onClick={onClose}
+      role="status"
+      initial={{ opacity: 0, y: 32, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 24 } }}
+      exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-sm items-center gap-4 rounded-2xl border border-white/15 bg-[#12121b]/90 p-3 pr-5 text-left backdrop-blur-xl sm:bottom-6"
+      style={{ boxShadow: `0 24px 70px -24px ${color}` }}
+    >
+      <span className="h-28 shrink-0">
+        <Character level={shown} color={color} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold uppercase tracking-[0.2em]" style={{ color }}>
+          Шинэ түвшин · {level + 1}/{levels.length}
+        </span>
+        <span className={cn(display, "mt-1 block text-xl font-semibold tracking-tight")}>{levels[level].name}</span>
+        <span className="mt-1 block text-sm leading-snug text-white/60">{levels[level].change}</span>
+      </span>
+    </motion.button>
+  );
+}
+
+/** The character next to how far he is from the next level. */
+function Growth({ role, count, className }: { role: FounderType; count: number; className?: string }) {
+  const level = levelFor(count);
+  const current = levels[level];
+  const next = levels[level + 1];
+  const progress = next ? (count - current.at) / (next.at - current.at) : 1;
+
+  return (
+    <div className={cn("flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 pr-4", className)}>
+      <span className="h-24 shrink-0">
+        <Character level={level} color={role.color} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-white/40">
+          Түвшин {level + 1}/{levels.length}
+        </p>
+        <p className={cn(display, "mt-0.5 font-semibold leading-tight")}>{current.name}</p>
+        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: role.color }}
+            initial={false}
+            animate={{ width: `${progress * 100}%` }}
+            transition={{ duration: 0.6, ease }}
+          />
+        </div>
+        <p className="mt-1.5 text-xs leading-snug text-white/45">
+          {next ? `Дараагийн түвшин хүртэл ${next.at - count} даалгавар` : "Бүх түвшинг давлаа"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Choose({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
   return (
     <motion.section
@@ -216,7 +312,21 @@ function Choose({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
   );
 }
 
-function Plan({ role, saved, done, onBack }: { role: FounderType; saved: Saved; done: Set<string>; onBack: () => void }) {
+function Plan({
+  role,
+  saved,
+  done,
+  count,
+  onLevelUp,
+  onBack,
+}: {
+  role: FounderType;
+  saved: Saved;
+  done: Set<string>;
+  count: number;
+  onLevelUp: (level: number) => void;
+  onBack: () => void;
+}) {
   const phase = phases.find((p) => p.id === saved.phase) ?? phases[0];
   const Icon = roleIcons[role.id];
 
@@ -262,8 +372,8 @@ function Plan({ role, saved, done, onBack }: { role: FounderType; saved: Saved; 
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.5, ease }}
       >
-        <Now role={role} phase={phase} saved={saved} done={done} onOpen={open} />
-        <Course role={role} phase={phase} saved={saved} done={done} onOpen={open} />
+        <Now role={role} phase={phase} saved={saved} done={done} level={levelFor(count)} onOpen={open} />
+        <Course role={role} phase={phase} saved={saved} done={done} count={count} onOpen={open} onLevelUp={onLevelUp} />
       </motion.div>
     </motion.section>
   );
@@ -272,9 +382,8 @@ function Plan({ role, saved, done, onBack }: { role: FounderType; saved: Saved; 
 // Each phase is a step higher than the last; the steps rest on the card's divider like a floor.
 const stepHeights = ["h-20 sm:h-28", "h-28 sm:h-36", "h-36 sm:h-44", "h-44 sm:h-52"];
 
-/** The startup phases as a staircase. The founder's role icon stands on the current step and climbs to the one picked. */
-function Ladder({ role, at, onPick }: { role: FounderType; at: number; onPick: (id: Phase["id"]) => void }) {
-  const Icon = roleIcons[role.id];
+/** The startup phases as a staircase. The founder stands on the current step and climbs to the one picked. */
+function Ladder({ role, at, level, onPick }: { role: FounderType; at: number; level: number; onPick: (id: Phase["id"]) => void }) {
   return (
     <div className="mt-4 grid grid-cols-4 items-end gap-1.5 sm:gap-3">
       {phases.map((p, i) => {
@@ -282,15 +391,10 @@ function Ladder({ role, at, onPick }: { role: FounderType; at: number; onPick: (
         const passed = i < at;
         return (
           <button key={p.id} onClick={() => onPick(p.id)} aria-pressed={active} className="group flex flex-col outline-none">
-            <span className="flex h-14 items-end justify-center pb-2">
+            <span className="flex h-24 items-end justify-center sm:h-40">
               {active && (
-                <motion.span
-                  layoutId="climber"
-                  transition={{ type: "spring", stiffness: 220, damping: 22 }}
-                  className="grid size-10 place-items-center rounded-xl border border-white/15 bg-white/[0.08] backdrop-blur sm:size-11"
-                  style={{ boxShadow: `0 0 30px -6px ${role.color}` }}
-                >
-                  <Icon className="size-5" style={{ color: role.color }} />
+                <motion.span layoutId="climber" transition={{ type: "spring", stiffness: 200, damping: 22 }} className="h-full">
+                  <Character level={level} color={role.color} />
                 </motion.span>
               )}
             </span>
@@ -329,12 +433,14 @@ function Now({
   phase,
   saved,
   done,
+  level,
   onOpen,
 }: {
   role: FounderType;
   phase: Phase;
   saved: Saved;
   done: Set<string>;
+  level: number;
   onOpen: (id: string) => void;
 }) {
   const { now, risk } = focus[phase.id][role.id];
@@ -350,6 +456,7 @@ function Now({
         <Ladder
           role={role}
           at={phases.findIndex((p) => p.id === phase.id)}
+          level={level}
           onPick={(id) => save({ ...saved, phase: id })}
         />
       </div>
@@ -413,13 +520,17 @@ function Course({
   phase,
   saved,
   done,
+  count,
   onOpen,
+  onLevelUp,
 }: {
   role: FounderType;
   phase: Phase;
   saved: Saved;
   done: Set<string>;
+  count: number;
   onOpen: (id: string) => void;
+  onLevelUp: (level: number) => void;
 }) {
   const index = Math.max(0, modules.findIndex((m) => m.id === saved.module));
   const current = modules[index];
@@ -450,8 +561,9 @@ function Course({
         </p>
       </div>
 
-      {/* Phones: a swipeable row of modules above the lesson. */}
-      <div ref={chips} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+      {/* Phones: the character, then a swipeable row of modules above the lesson. */}
+      <Growth role={role} count={count} className="mt-5 lg:hidden" />
+      <div ref={chips} className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
         {modules.map((m, i) => (
           <button
             key={m.id}
@@ -476,39 +588,43 @@ function Course({
             saved={saved}
             done={done}
             onOpen={onOpen}
+            onLevelUp={onLevelUp}
           />
         </AnimatePresence>
 
-        <nav className="sticky top-20 hidden max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.02] p-2 lg:block">
-          {modules.map((m, i) => {
-            const count = m.tasks.filter((q) => done.has(q.id)).length;
-            const complete = count === m.tasks.length;
-            const suggested = phase.modules.includes(m.id);
-            return (
-              <button
-                key={m.id}
-                onClick={() => onOpen(m.id)}
-                aria-current={i === index ? "step" : undefined}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
-                  i === index ? "bg-white/[0.08] text-white" : "text-white/60 hover:bg-white/[0.04] hover:text-white",
-                )}
-              >
-                <span
+        <div className="sticky top-20 hidden space-y-3 lg:block">
+          <Growth role={role} count={count} />
+          <nav className="max-h-[calc(100vh-15rem)] overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.02] p-2">
+            {modules.map((m, i) => {
+              const count = m.tasks.filter((q) => done.has(q.id)).length;
+              const complete = count === m.tasks.length;
+              const suggested = phase.modules.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => onOpen(m.id)}
+                  aria-current={i === index ? "step" : undefined}
                   className={cn(
-                    "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[10px]",
-                    complete ? "text-black" : "bg-white/[0.06] text-white/50",
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
+                    i === index ? "bg-white/[0.08] text-white" : "text-white/60 hover:bg-white/[0.04] hover:text-white",
                   )}
-                  style={complete ? { background: role.color } : undefined}
                 >
-                  {complete ? <Check className="size-3.5" strokeWidth={3} /> : num(i)}
-                </span>
-                <span className="flex-1 leading-snug">{m.title}</span>
-                {suggested && !complete && <span className="size-1.5 shrink-0 rounded-full" style={{ background: role.color }} />}
-              </button>
-            );
-          })}
-        </nav>
+                  <span
+                    className={cn(
+                      "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[10px]",
+                      complete ? "text-black" : "bg-white/[0.06] text-white/50",
+                    )}
+                    style={complete ? { background: role.color } : undefined}
+                  >
+                    {complete ? <Check className="size-3.5" strokeWidth={3} /> : num(i)}
+                  </span>
+                  <span className="flex-1 leading-snug">{m.title}</span>
+                  {suggested && !complete && <span className="size-1.5 shrink-0 rounded-full" style={{ background: role.color }} />}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </div>
     </div>
   );
@@ -521,6 +637,7 @@ function ModuleView({
   saved,
   done,
   onOpen,
+  onLevelUp,
 }: {
   module: Module;
   index: number;
@@ -528,6 +645,7 @@ function ModuleView({
   saved: Saved;
   done: Set<string>;
   onOpen: (id: string) => void;
+  onLevelUp: (level: number) => void;
 }) {
   const Icon = roleIcons[role.id];
   const prev = modules[index - 1];
@@ -535,7 +653,9 @@ function ModuleView({
   const [open, setOpen] = useState<string | null>(m.tasks.find((q) => !done.has(q.id))?.id ?? null);
 
   const complete = (q: Quest) => {
+    const count = allTasks.filter((t) => done.has(t.id)).length;
     save({ ...saved, done: [...saved.done, q.id] });
+    if (levelFor(count + 1) > levelFor(count)) onLevelUp(levelFor(count + 1));
     setOpen(m.tasks.find((t) => t.id !== q.id && !done.has(t.id))?.id ?? null);
   };
 
