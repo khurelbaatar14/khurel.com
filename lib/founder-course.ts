@@ -495,22 +495,3 @@ export const modules: Module[] = [
 ];
 
 export const allTasks = modules.flatMap((m) => m.tasks);
-
-/**
- * The founder character (components/founder/Character.tsx) grows with the tasks done: `at` is how
- * many finished tasks reach each level, and `change` says what he picked up.
- */
-export type Level = { name: string; at: number; change: string };
-
-export const levels: Level[] = [
-  { name: "Мөрөөдөгч", at: 0, change: "Аялал эндээс эхэлнэ." },
-  { name: "Санаачлагч", at: 1, change: "Анхны санаа гэрэлтлээ." },
-  { name: "Туршигч", at: 5, change: "Hoodie өмсөж, ноутбукаа авлаа." },
-  { name: "Худалдаачин", at: 12, change: "Чихэвчээ зүүж, харилцагчидтайгаа ярьж эхэллээ." },
-  { name: "Удирдагч", at: 22, change: "Үсээ засуулж, хүрэм өмслөө — одоо баг удирдана." },
-  { name: "Үүсгэн байгуулагч", at: allTasks.length, change: "Бүх даалгавраа дуусгаж, гараа өргөлөө." },
-];
-
-export function levelFor(count: number) {
-  return levels.filter((l) => count >= l.at).length - 1;
-}
