@@ -1,4 +1,4 @@
-// Founder Path (/founder): roles, startup phases and the task library behind the course in
+// DIIL for startups (/founders): roles, startup phases and the task library behind the course in
 // lib/founder-course.ts. A founder picks a role — hacker, hipster or hustler — and where their
 // startup is now; the page turns that into what to do right now. Finishing a task earns "оч"
 // (sparks), and tasks on the role's weak side pay double, pulling founders toward what they'd
@@ -21,39 +21,45 @@ export type FounderType = {
   weakness: string;
   /** Tasks of this skill pay double. */
   weak: Skill;
+  /** The role's sticker colour (its tiles carry black icons). */
   color: string;
+  /** A 3D cartoon portrait of the founder in this seat, in /public; the role icon until there is one. */
+  avatar?: string;
 };
 
 export const founderTypes: FounderType[] = [
   {
     id: "hacker",
     name: "Hacker",
-    title: "Бүтээгч",
+    title: "CTO",
     motto: "Би бүтээнэ.",
-    strength: "Санааг хэдхэн өдөрт ажилладаг бүтээгдэхүүн болгоно.",
+    strength: "Юм бүтээх, код бичих дуртай.",
     weakness: "Танихгүй хүнтэй ярих, худалдах нь эвгүй санагддаг.",
     weak: "sell",
-    color: "#34d399",
+    color: "#2ee6d6",
+    avatar: "/diil/hacker-3d.webp",
   },
   {
     id: "hipster",
     name: "Hipster",
-    title: "Дизайнч",
+    title: "CMO",
     motto: "Би мэдэрнэ.",
-    strength: "Хэрэглэгчийн мэдрэмж, брэнд, туршлагыг бусдаас илүү ойлгоно.",
+    strength: "Гоё харагдуулах, брэнд хийх дуртай.",
     weakness: "Тоо, систем, техникийн ажлаас зайлсхийдэг.",
     weak: "build",
-    color: "#c084fc",
+    color: "#a98bff",
+    avatar: "/diil/hipster-3d.webp",
   },
   {
     id: "hustler",
     name: "Hustler",
-    title: "Борлуулагч",
+    title: "CEO",
     motto: "Би зарна.",
-    strength: "Хүмүүстэй ярьж, гэрээ байгуулж, мөнгө авчирна.",
+    strength: "Хүмүүстэй ярих, зарах, мөнгө босгох дуртай.",
     weakness: "Хэрэглэгчийн туршлага, нарийн ширийнийг үл тоомсорлодог.",
     weak: "design",
-    color: "#fbbf24",
+    color: "#ffd23d",
+    avatar: "/diil/hustler-3d.webp",
   },
 ];
 
@@ -66,10 +72,10 @@ export type Phase = {
 };
 
 export const phases: Phase[] = [
-  { id: "idea", name: "Санаа", hint: "Асуудал, харилцагчаа ойлгож байна", modules: ["startup", "hadi", "jtbd", "do-dont"] },
-  { id: "product", name: "Бүтээгдэхүүн", hint: "Эхний хувилбараа шалгаж байна", modules: ["hadi", "agents", "free-tools", "b2b-b2c"] },
-  { id: "customers", name: "Эхний харилцагчид", hint: "Төлбөр төлдөг харилцагч олж байна", modules: ["first-sales", "b2b-b2c", "marketing", "unit-economics"] },
-  { id: "growth", name: "Өсөлт", hint: "Баг, хөрөнгө, өсөлт", modules: ["unit-economics", "hiring", "safe", "investors"] },
+  { id: "idea", name: "Санаа", hint: "Юу хийхээ мэдэж байна, бүтээгдэхүүн алга.", modules: ["startup", "hadi", "jtbd", "do-dont"] },
+  { id: "product", name: "MVP", hint: "Анхны хувилбараа хийж, хүмүүст үзүүлж байна.", modules: ["hadi", "agents", "free-tools", "b2b-b2c"] },
+  { id: "customers", name: "Анхны хэрэглэгчид", hint: "Хэдэн хүн мөнгө төлж эхэлсэн.", modules: ["first-sales", "b2b-b2c", "marketing", "unit-economics"] },
+  { id: "growth", name: "Томрох", hint: "Загвар ажиллаж байна, одоо хурдлах үе.", modules: ["unit-economics", "hiring", "safe", "investors"] },
 ];
 
 /** What each role should focus on right now in each phase, and the trap to watch for. */

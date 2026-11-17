@@ -1,33 +1,44 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { animate, AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { animate, AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Check, Clock, Gift, ListChecks, Lock, PartyPopper, PenLine, Play, RotateCcw, Zap } from "lucide-react";
+import DiilLogo from "@/components/founder/DiilLogo";
+import Orbit, { Face } from "@/components/founder/Orbit";
+import SearchLoop from "@/components/founder/SearchLoop";
+import { founderTypes, phases, rewardFor, skills, type FounderType, type Phase } from "@/lib/founder";
+import { modules, type Module } from "@/lib/founder-course";
 import {
-  AlertTriangle,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  ChevronDown,
-  Clock,
-  Flag,
-  Info,
-  Lightbulb,
-  Play,
-  RotateCcw,
-  Sparkles,
-  Target,
-} from "lucide-react";
-import Orbit, { roleIcons } from "@/components/founder/Orbit";
-import { focus, founderTypes, phases, rewardFor, skills, type FounderType, type Phase, type Quest } from "@/lib/founder";
-import { allTasks, modules, type Module } from "@/lib/founder-course";
+  MEETING_COST,
+  NOTE_SPARKS,
+  VIDEO_SPARKS,
+  isDone,
+  pathFor,
+  rewards,
+  stageEarned,
+  stageGoal,
+  stepSparks,
+  totalEarned,
+  type Step,
+  type StepLog,
+} from "@/lib/diil";
 import { cn } from "@/lib/utils";
 
-// Draft: the founder's role, phase, open module and finished tasks live in this browser only
-// (localStorage).
-type Saved = { role: FounderType["id"] | null; phase: Phase["id"]; module: string; done: string[] };
-const KEY = "founder-path-v1";
-const EMPTY = JSON.stringify({ role: null, phase: "idea", module: modules[0].id, done: [] });
+// Draft: progress lives in this browser only (localStorage): the role, the stage, the furthest
+// stage unlocked, each step's video/task/reflection, and sparks spent on meetings.
+type Saved = {
+  role: FounderType["id"] | null;
+  stage: Phase["id"] | null;
+  /** Index of the furthest unlocked stage; -1 until a stage is picked. */
+  reached: number;
+  step: string | null;
+  logs: Record<string, StepLog>;
+  spent: number;
+  met: FounderType["id"][];
+};
+const KEY = "diil-startups-v1";
+const EMPTY = JSON.stringify({ role: null, stage: null, reached: -1, step: null, logs: {}, spent: 0, met: [] });
 let memory = EMPTY;
 const listeners = new Set<() => void>();
 
@@ -61,81 +72,176 @@ function subscribe(listener: () => void) {
 function parse(raw: string): Saved {
   try {
     const v = JSON.parse(raw);
+    const isRole = (id: unknown): id is FounderType["id"] => founderTypes.some((t) => t.id === id);
     return {
-      role: founderTypes.some((t) => t.id === v?.role) ? v.role : null,
-      phase: phases.some((p) => p.id === v?.phase) ? v.phase : "idea",
-      module: modules.some((m) => m.id === v?.module) ? v.module : modules[0].id,
-      done: Array.isArray(v?.done) ? v.done.filter((id: unknown) => typeof id === "string") : [],
+      role: isRole(v?.role) ? v.role : null,
+      stage: phases.some((p) => p.id === v?.stage) ? v.stage : null,
+      reached: Number.isInteger(v?.reached) ? Math.min(Math.max(v.reached, -1), phases.length - 1) : -1,
+      step: typeof v?.step === "string" ? v.step : null,
+      logs: v?.logs && typeof v.logs === "object" ? v.logs : {},
+      spent: Number.isFinite(v?.spent) ? Math.max(0, v.spent) : 0,
+      met: Array.isArray(v?.met) ? v.met.filter(isRole) : [],
     };
   } catch {
     return parse(EMPTY);
   }
 }
 
-const display = "font-[family-name:var(--font-display)]";
+// The sticker palette: black page, near-black cards, one bright colour per kind of thing.
+const GREEN = "#37f59a"; // sparks and progress
+const kinds = {
+  video: { color: "#3d7bff", icon: Play },
+  task: { color: "#ff8a3d", icon: ListChecks },
+  note: { color: "#ff5fa8", icon: PenLine },
+};
+const stageColors = ["#3d7bff", "#ff8a3d", "#ff5fa8", GREEN];
+const card = "rounded-3xl border border-[#222226] bg-[#121214]";
 const ease = [0.22, 1, 0.36, 1] as const;
-const num = (i: number) => String(i + 1).padStart(2, "0");
 const noop = () => () => {};
+// Founders in the order a team is usually introduced.
+const team = ["hustler", "hacker", "hipster"].map((id) => founderTypes.find((t) => t.id === id)!);
 
 export default function FounderPath() {
   const raw = useSyncExternalStore(subscribe, read, () => EMPTY);
-  // The server can't see the saved role, so it renders the orbit. On the first client render,
-  // jump straight to whatever was saved: new group and presence keys skip the morph and crossfade.
+  // The server can't see saved progress, so it renders the first screen. On the first client render,
+  // jump straight to what was saved: a new presence key skips the crossfade.
   const hydrated = useSyncExternalStore(noop, () => true, () => false);
   const mount = hydrated ? "live" : "ssr";
   const saved = useMemo(() => parse(raw), [raw]);
-  const done = useMemo(() => new Set(saved.done), [saved.done]);
   const role = founderTypes.find((t) => t.id === saved.role);
-  const sparks = allTasks.reduce((sum, q) => sum + (done.has(q.id) ? rewardFor(q, role) : 0), 0);
+  const [picking, setPicking] = useState(false);
+  // The stage just unlocked, shown for a few seconds.
+  const [unlocked, setUnlocked] = useState<string | null>(null);
 
-  function pick(id: FounderType["id"]) {
-    save({ ...saved, role: id });
+  useEffect(() => {
+    if (!unlocked) return;
+    const timer = setTimeout(() => setUnlocked(null), 4500);
+    return () => clearTimeout(timer);
+  }, [unlocked]);
+
+  // Unlocks follow from the sparks themselves, so they can't fall behind (e.g. after content changes).
+  const state = role ? { ...saved, reached: reachedWith(role, saved) } : saved;
+  const earned = role ? totalEarned(role, saved.logs) : 0;
+  const balance = Math.max(0, earned - saved.spent);
+  const phase = phases.find((p) => p.id === saved.stage);
+  const screen = !role ? "role" : !phase || picking ? "stage" : "path";
+
+  function top() {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function pickRole(id: FounderType["id"]) {
+    save({ ...saved, role: id });
+    top();
+  }
+
+  function pickStage(i: number) {
+    save({ ...state, stage: phases[i].id, reached: Math.max(state.reached, i), step: null });
+    setPicking(false);
+    top();
+  }
+
+  function award(step: Step, patch: StepLog) {
+    if (!role) return;
+    const logs = { ...saved.logs, [step.id]: { ...saved.logs[step.id], ...patch } };
+    const reached = reachedWith(role, { ...saved, logs });
+    if (reached > state.reached) setUnlocked(phases[reached].name);
+    // Stay on this step so its "done" moment shows before moving on.
+    save({ ...saved, logs, reached, step: step.id });
+  }
+
+  function meet(id: FounderType["id"]) {
+    if (balance < MEETING_COST || saved.met.includes(id)) return;
+    save({ ...saved, spent: saved.spent + MEETING_COST, met: [...saved.met, id] });
   }
 
   return (
     // overflow-clip, not -hidden: a hidden box can still be scrolled sideways (e.g. focusing an orbiting
     // founder near the edge), and it would stop the top bar from sticking.
-    <div className="relative isolate min-h-screen overflow-clip bg-[#08080c] text-white">
-      <Backdrop />
-      <TopBar sparks={sparks} />
+    <div className="min-h-screen overflow-clip bg-black font-[family-name:var(--font-display)] text-white antialiased selection:bg-[#37f59a] selection:text-black">
+      <TopBar balance={balance} />
 
-      <LayoutGroup id={mount}>
-        <AnimatePresence key={mount} mode="popLayout" initial={false}>
-          {role ? (
-            <Plan key="plan" role={role} saved={saved} done={done} onBack={() => save({ ...saved, role: null })} />
-          ) : (
-            <Choose key="choose" onPick={pick} />
-          )}
-        </AnimatePresence>
-      </LayoutGroup>
+      <AnimatePresence key={mount} mode="wait" initial={false}>
+        {screen === "role" && <RoleScreen key="role" onPick={pickRole} />}
+        {screen === "stage" && role && (
+          <StageScreen
+            key="stage"
+            role={role}
+            saved={state}
+            onPick={pickStage}
+            onBack={phase ? () => setPicking(false) : undefined}
+            onRole={() => save({ ...saved, role: null })}
+          />
+        )}
+        {screen === "path" && role && phase && (
+          <Journey
+            key="path"
+            role={role}
+            phase={phase}
+            saved={state}
+            earned={earned}
+            balance={balance}
+            onAward={award}
+            onOpen={(id) => save({ ...saved, step: id })}
+            onStage={pickStage}
+            onChangeStage={() => {
+              setPicking(true);
+              top();
+            }}
+            onRole={() => save({ ...saved, role: null })}
+            onMeet={meet}
+          />
+        )}
+      </AnimatePresence>
 
-      <footer className="relative mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/5 px-4 py-8 text-sm text-white/35 sm:flex-row sm:px-6">
-        <p>Ноорог · Явц зөвхөн энэ төхөөрөмж дээр хадгалагдана.</p>
-        <button onClick={() => save(parse(EMPTY))} className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
-          <RotateCcw className="size-3.5" />
-          Дахин эхлэх
-        </button>
+      <AnimatePresence>
+        {unlocked && (
+          <motion.button
+            key={unlocked}
+            onClick={() => setUnlocked(null)}
+            role="status"
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 22 } }}
+            exit={{ opacity: 0, y: 24, transition: { duration: 0.2 } }}
+            className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-sm items-center gap-4 rounded-3xl bg-white p-4 pr-5 text-left text-black shadow-2xl sm:bottom-6"
+          >
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl" style={{ background: GREEN }}>
+              <PartyPopper className="size-6" strokeWidth={2.25} />
+            </span>
+            <span>
+              <span className="block text-sm font-bold text-black/50">Шинэ шат нээгдлээ</span>
+              <span className="block text-xl font-black tracking-tight">{unlocked}</span>
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <footer className="border-t border-[#1a1a1e]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 text-sm font-medium text-[#6b6b75] sm:flex-row sm:px-6">
+          <p>Туршилтын хувилбар · Явц чинь зөвхөн энэ төхөөрөмж дээр хадгалагдана.</p>
+          <button
+            onClick={() => {
+              setPicking(false);
+              save(parse(EMPTY));
+            }}
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+          >
+            <RotateCcw className="size-3.5" />
+            Дахин эхлэх
+          </button>
+        </div>
       </footer>
     </div>
   );
 }
 
-function Backdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-      <div
-        className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_70%)]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
-      <div className="absolute -top-48 left-1/2 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-orange-500/[0.12] blur-[150px]" />
-      <div className="absolute top-[36rem] -left-48 h-[30rem] w-[30rem] rounded-full bg-violet-600/[0.12] blur-[150px]" />
-    </div>
-  );
+/** The furthest open stage: the saved one, plus each next stage whose unlock line the one before has passed. */
+function reachedWith(role: FounderType, saved: Saved) {
+  let reached = saved.reached;
+  while (reached >= 0 && reached < phases.length - 1 && stageEarned(role, phases[reached], saved.logs) >= stageGoal(role, phases[reached]).unlock) {
+    reached++;
+  }
+  return reached;
 }
 
 function Counter({ value }: { value: number }) {
@@ -157,619 +263,755 @@ function Counter({ value }: { value: number }) {
   return <span className="tabular-nums">{shown.toLocaleString("en-US")}</span>;
 }
 
-function TopBar({ sparks }: { sparks: number }) {
+function TopBar({ balance }: { balance: number }) {
   return (
-    <div className="sticky top-0 z-40 border-b border-white/5 bg-[#08080c]/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="text-sm text-white/50 transition-colors hover:text-white">
-          khurel.com <span className="text-white/25">/</span> <span className="text-white">founder</span>
+    <header className="sticky top-0 z-40 border-b border-[#1a1a1e] bg-black/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <Link href="/founders" className="flex items-center gap-2.5">
+          <DiilLogo className="h-[22px] w-auto text-white" />
+          <span className="text-sm font-semibold text-[#9a9aa6]">for startups</span>
         </Link>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-sm font-medium text-amber-200">
-          <Sparkles className="size-3.5" />
-          <Counter value={sparks} /> оч
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-black text-black" style={{ background: GREEN }}>
+          <Zap className="size-4 fill-black" />
+          <Counter value={balance} /> оч
         </span>
+      </div>
+    </header>
+  );
+}
+
+/** The three onboarding steps: role, stage, then the path itself. */
+function Progress({ at }: { at: number }) {
+  return (
+    <ol className="flex flex-wrap items-center gap-2 text-sm font-bold">
+      {["Үүрэг", "Шат", "Аялал"].map((label, i) => (
+        <li key={label} className={cn("flex items-center gap-2", i <= at ? "text-white" : "text-[#55555f]")}>
+          <span
+            className={cn(
+              "grid size-7 place-items-center rounded-full text-xs font-black",
+              i < at ? "text-black" : i === at ? "bg-white text-black" : "bg-[#18181b] text-[#55555f]",
+            )}
+            style={i < at ? { background: GREEN } : undefined}
+          >
+            {i < at ? <Check className="size-4" strokeWidth={3} /> : i + 1}
+          </span>
+          {label}
+          {i < 2 && <span className="mx-1 h-[2px] w-6 rounded-full bg-[#2a2a30]" />}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+const screenMotion = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.18 } },
+};
+
+function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
+  return (
+    <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 lg:pt-14">
+      <Progress at={0} />
+      <div className="mt-8 grid items-center gap-x-14 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        <div>
+          <h1 className="text-[2.75rem] font-black leading-[0.95] tracking-[-0.045em] sm:text-7xl">Чи ямар үүсгэн байгуулагч вэ?</h1>
+          <p className="mt-5 max-w-md text-lg font-medium leading-relaxed text-[#9a9aa6]">
+            Нэгийг нь сонго. Чамд тохирсон замыг гаргаад өгье. Дараа нь сольж болно.
+          </p>
+          <div className="mt-8 grid gap-3">
+            {team.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => onPick(t.id)}
+                className={cn(card, "group flex items-center gap-4 p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[var(--c)]")}
+                style={{ "--c": t.color } as React.CSSProperties}
+              >
+                <span
+                  className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl text-black transition-transform duration-200 group-hover:-rotate-6"
+                  style={{ background: t.color }}
+                >
+                  <Face type={t} size={56} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black tracking-tight">{t.title}</span>
+                    <span className="text-sm font-semibold text-[#6b6b75]">{t.name}</span>
+                  </span>
+                  <span className="mt-0.5 block text-[15px] font-medium text-[#c8c8d0]">{t.strength}</span>
+                </span>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#1c1c20] transition-colors group-hover:bg-white group-hover:text-black">
+                  <ArrowRight className="size-5" />
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <Orbit onPick={onPick} />
+      </div>
+    </motion.section>
+  );
+}
+
+function RoleChip({ role, onRole }: { role: FounderType; onRole: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-2.5">
+      <span className="relative grid size-9 place-items-center overflow-hidden rounded-xl text-black" style={{ background: role.color }}>
+        <Face type={role} size={36} />
+      </span>
+      <span className="font-black">{role.title}</span>
+      <button onClick={onRole} className="text-sm font-semibold text-[#6b6b75] underline-offset-4 transition-colors hover:text-white hover:underline">
+        солих
+      </button>
+    </span>
+  );
+}
+
+function StageScreen({
+  role,
+  saved,
+  onPick,
+  onBack,
+  onRole,
+}: {
+  role: FounderType;
+  saved: Saved;
+  onPick: (i: number) => void;
+  onBack?: () => void;
+  onRole: () => void;
+}) {
+  const first = saved.reached < 0;
+  return (
+    <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 lg:pt-14">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Progress at={1} />
+        <RoleChip role={role} onRole={onRole} />
+      </div>
+      <h1 className="mt-8 max-w-3xl text-[2.75rem] font-black leading-[0.95] tracking-[-0.045em] sm:text-7xl">
+        Стартап чинь одоо хаана явж байна?
+      </h1>
+      <p className="mt-5 max-w-lg text-lg font-medium leading-relaxed text-[#9a9aa6]">
+        {first ? "Үнэнээ сонго. Тэндээсээ эхэлнэ." : "Түгжээтэй шатууд оч цуглуулахаар нээгдэнэ."}
+      </p>
+
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        {phases.map((p, i) => {
+          const locked = !first && i > saved.reached;
+          const current = saved.stage === p.id;
+          return (
+            <button
+              key={p.id}
+              onClick={() => onPick(i)}
+              disabled={locked}
+              className={cn(
+                card,
+                "group flex min-h-40 flex-col justify-between gap-6 p-5 text-left transition duration-200 sm:p-6",
+                locked ? "cursor-not-allowed opacity-50" : "hover:-translate-y-0.5 hover:border-[var(--c)]",
+                current && "border-[var(--c)]",
+              )}
+              style={{ "--c": stageColors[i] } as React.CSSProperties}
+            >
+              <span className="flex items-start justify-between">
+                <span
+                  className="grid size-12 place-items-center rounded-2xl text-xl font-black text-black transition-transform duration-200 group-hover:-rotate-6"
+                  style={{ background: locked ? "#2a2a30" : stageColors[i] }}
+                >
+                  {locked ? <Lock className="size-5 text-[#9a9aa6]" /> : i + 1}
+                </span>
+                {current ? (
+                  <span className="rounded-full px-2.5 py-1 text-xs font-black text-black" style={{ background: stageColors[i] }}>
+                    Одоо энд
+                  </span>
+                ) : (
+                  !locked && <ArrowRight className="size-5 text-[#55555f] transition-colors group-hover:text-white" />
+                )}
+              </span>
+              <span>
+                <span className="block text-2xl font-black tracking-tight sm:text-3xl">{p.name}</span>
+                <span className="mt-1 block text-[15px] font-medium text-[#9a9aa6]">{p.hint}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {onBack && (
+        <button onClick={onBack} className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[#9a9aa6] transition-colors hover:text-white">
+          <ArrowLeft className="size-4" />
+          Буцах
+        </button>
+      )}
+    </motion.section>
+  );
+}
+
+function Journey({
+  role,
+  phase,
+  saved,
+  earned,
+  balance,
+  onAward,
+  onOpen,
+  onStage,
+  onChangeStage,
+  onRole,
+  onMeet,
+}: {
+  role: FounderType;
+  phase: Phase;
+  saved: Saved;
+  earned: number;
+  balance: number;
+  onAward: (step: Step, patch: StepLog) => void;
+  onOpen: (id: string) => void;
+  onStage: (i: number) => void;
+  onChangeStage: () => void;
+  onRole: () => void;
+  onMeet: (id: FounderType["id"]) => void;
+}) {
+  const steps = pathFor(role.id, phase);
+  const at = phases.indexOf(phase);
+  // The open step: the one picked, else the first unfinished one.
+  const picked = steps.findIndex((s) => s.id === saved.step);
+  const index = Math.max(0, picked >= 0 ? picked : steps.findIndex((s) => !isDone(saved.logs[s.id])));
+  const current = steps[index] ?? steps[steps.length - 1];
+
+  function open(i: number) {
+    onOpen(steps[i].id);
+    document.getElementById("step")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  return (
+    <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <RoleChip role={role} onRole={onRole} />
+        <span className="text-[#2a2a30]">/</span>
+        <button onClick={onChangeStage} className="inline-flex items-center gap-2 font-black transition-opacity hover:opacity-80">
+          <span className="grid size-7 place-items-center rounded-lg text-sm text-black" style={{ background: stageColors[at] }}>
+            {at + 1}
+          </span>
+          {phase.name}
+          <span className="text-sm font-semibold text-[#6b6b75]">солих</span>
+        </button>
+      </div>
+
+      <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div className="min-w-0">
+          <StageBar role={role} phase={phase} saved={saved} />
+          <Path steps={steps} logs={saved.logs} current={index} onOpen={open} />
+          <div id="step" className="scroll-mt-24">
+            <AnimatePresence mode="wait">
+              <StepView
+                key={current.id}
+                step={current}
+                index={index}
+                count={steps.length}
+                role={role}
+                log={saved.logs[current.id]}
+                onAward={(patch) => onAward(current, patch)}
+                onNext={index < steps.length - 1 ? () => open(index + 1) : undefined}
+              />
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <Wallet balance={balance} earned={earned} spent={saved.spent} />
+          <Meet balance={balance} met={saved.met} onMeet={onMeet} />
+          <Stages saved={saved} at={at} onStage={onStage} />
+        </aside>
+      </div>
+    </motion.section>
+  );
+}
+
+/** Progress through this stage toward unlocking the next one. */
+function StageBar({ role, phase, saved }: { role: FounderType; phase: Phase; saved: Saved }) {
+  const at = phases.indexOf(phase);
+  const next = phases[at + 1];
+  const { total, unlock } = stageGoal(role, phase);
+  const got = stageEarned(role, phase, saved.logs);
+  const open = saved.reached > at;
+  const share = next && !open ? Math.min(got / unlock, 1) : Math.min(got / total, 1);
+
+  return (
+    <div className={cn(card, "p-5")}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className="text-lg font-black tracking-tight">
+          Түвшин {at + 1} <span className="font-bold text-[#6b6b75]">· {phase.name}</span>
+        </p>
+        <p className="text-sm font-bold text-[#9a9aa6]">
+          {!next ? (
+            <>
+              {got} / {total} оч
+            </>
+          ) : open ? (
+            <span style={{ color: GREEN }}>{next.name} нээгдсэн</span>
+          ) : (
+            <>
+              {next.name} нээгдэхэд <span className="text-white">{unlock - got} оч</span> дутуу
+            </>
+          )}
+        </p>
+      </div>
+      <div className="mt-3 h-3 overflow-hidden rounded-full bg-[#222226]">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: GREEN }}
+          initial={false}
+          animate={{ width: `${share * 100}%` }}
+          transition={{ duration: 0.7, ease }}
+        />
       </div>
     </div>
   );
 }
 
-function Choose({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
-  return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.3 } }}
-      className="mx-auto max-w-5xl px-4 pb-16 pt-14 text-center sm:px-6 sm:pt-20"
-    >
-      <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/60">
-        <span className="size-1.5 rounded-full bg-orange-400" />
-        Founder Path
-      </p>
-      <h1 className={cn(display, "mx-auto mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl")}>
-        Та ямар{" "}
-        <span className="bg-gradient-to-r from-orange-300 via-pink-300 to-violet-300 bg-clip-text text-transparent">
-          үүсгэн байгуулагч
-        </span>{" "}
-        вэ?
-      </h1>
-      <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/55">
-        Стартап бол цөм. Түүнийг тойрон гурван төрлийн үүсгэн байгуулагч эргэдэг. Өөрийгөө сонго — стартапдаа яг одоо юу
-        хийхээ мэдэх болно.
-      </p>
-
-      <div className="mt-6 sm:mt-2">
-        <Orbit onPick={onPick} />
-      </div>
-
-      <div className="mt-6 flex flex-wrap justify-center gap-2 sm:mt-2">
-        {founderTypes.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onPick(t.id)}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/70 transition-colors hover:border-white/25 hover:text-white"
-          >
-            <span className="font-medium text-white">{t.name}</span> · {t.title}
-          </button>
-        ))}
-      </div>
-    </motion.section>
-  );
-}
-
-function Plan({ role, saved, done, onBack }: { role: FounderType; saved: Saved; done: Set<string>; onBack: () => void }) {
-  const phase = phases.find((p) => p.id === saved.phase) ?? phases[0];
-  const Icon = roleIcons[role.id];
-
-  function open(id: string) {
-    save({ ...saved, module: id });
-    document.getElementById("course")?.scrollIntoView({ behavior: "smooth" });
-  }
+/** The stage's steps as a row of numbered dots; finished ones turn green. */
+function Path({ steps, logs, current, onOpen }: { steps: Step[]; logs: Record<string, StepLog>; current: number; onOpen: (i: number) => void }) {
+  const row = useRef<HTMLDivElement>(null);
+  const loaded = useRef(false);
+  // Keep the open step's dot in view (scrolls only the row).
+  useEffect(() => {
+    const el = row.current;
+    const dot = el?.querySelector<HTMLElement>(`[data-step="${current}"]`);
+    if (!el || !dot) return;
+    el.scrollTo({ left: dot.offsetLeft - el.offsetLeft - el.clientWidth / 2 + dot.clientWidth / 2, behavior: loaded.current ? "smooth" : "instant" });
+    loaded.current = true;
+  }, [current]);
 
   return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.25 } }}
-      className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14"
-    >
-      <div className="flex flex-wrap items-center gap-5">
-        <motion.span
-          layoutId={`role-${role.id}`}
-          transition={{ type: "spring", stiffness: 140, damping: 22 }}
-          className="grid size-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/[0.07] backdrop-blur-md"
-          style={{ boxShadow: `0 0 50px -12px ${role.color}, inset 0 1px 0 rgba(255,255,255,.12)` }}
-        >
-          <Icon className="size-8" style={{ color: role.color }} />
-        </motion.span>
-        <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15, duration: 0.5, ease }}>
-          <p className="text-xs uppercase tracking-[0.2em] text-white/40">Таны үүрэг</p>
-          <h2 className={cn(display, "text-2xl font-semibold tracking-tight sm:text-3xl")}>
-            {role.name} <span className="text-white/40">· {role.title}</span>
-          </h2>
-          <p className="mt-1 text-sm text-white/50">{role.strength}</p>
-        </motion.div>
-        <button
-          onClick={onBack}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-sm text-white/60 transition-colors hover:border-white/25 hover:text-white"
-        >
-          <ArrowLeft className="size-4" />
-          Үүргээ солих
-        </button>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5, ease }}
-      >
-        <Now role={role} phase={phase} saved={saved} done={done} onOpen={open} />
-        <Course role={role} phase={phase} saved={saved} done={done} onOpen={open} />
-      </motion.div>
-    </motion.section>
-  );
-}
-
-// Each phase is a step higher than the last; the steps rest on the card's divider like a floor.
-const stepHeights = ["h-20 sm:h-28", "h-28 sm:h-36", "h-36 sm:h-44", "h-44 sm:h-52"];
-
-/** The startup phases as a staircase. The founder's role icon stands on the current step and climbs to the one picked. */
-function Ladder({ role, at, onPick }: { role: FounderType; at: number; onPick: (id: Phase["id"]) => void }) {
-  const Icon = roleIcons[role.id];
-  return (
-    <div className="mt-4 grid grid-cols-4 items-end gap-1.5 sm:gap-3">
-      {phases.map((p, i) => {
-        const active = i === at;
-        const passed = i < at;
+    <div ref={row} className="-mx-4 mt-5 flex items-center overflow-x-auto px-4 py-2 sm:mx-0 sm:px-1">
+      {steps.map((s, i) => {
+        const log = logs[s.id];
+        const done = isDone(log);
+        const on = i === current;
         return (
-          <button key={p.id} onClick={() => onPick(p.id)} aria-pressed={active} className="group flex flex-col outline-none">
-            <span className="flex h-14 items-end justify-center pb-2">
-              {active && (
-                <motion.span
-                  layoutId="climber"
-                  transition={{ type: "spring", stiffness: 220, damping: 22 }}
-                  className="grid size-10 place-items-center rounded-xl border border-white/15 bg-white/[0.08] backdrop-blur sm:size-11"
-                  style={{ boxShadow: `0 0 30px -6px ${role.color}` }}
-                >
-                  <Icon className="size-5" style={{ color: role.color }} />
-                </motion.span>
-              )}
-            </span>
-            <span
+          <Fragment key={s.id}>
+            <button
+              data-step={i}
+              onClick={() => onOpen(i)}
+              aria-current={on ? "step" : undefined}
+              aria-label={`Алхам ${i + 1}: ${s.title}`}
               className={cn(
-                "flex flex-col gap-1 rounded-t-xl border border-b-0 p-2.5 text-left transition-colors sm:p-4",
-                stepHeights[i],
-                active
-                  ? "text-white"
-                  : passed
-                    ? "border-white/15 bg-white/[0.06] text-white/80 group-hover:bg-white/[0.09]"
-                    : "border-white/[0.08] bg-white/[0.02] text-white/45 group-hover:bg-white/[0.05] group-hover:text-white/70",
+                "grid size-10 shrink-0 place-items-center rounded-full text-sm font-black transition duration-200",
+                on && "scale-110 ring-4 ring-white/15",
+                done ? "text-black" : on ? "bg-white text-black" : log ? "bg-[#2a2a30] text-white" : "bg-[#18181b] text-[#6b6b75] hover:text-white",
               )}
-              style={
-                active
-                  ? { borderColor: `${role.color}80`, background: `linear-gradient(180deg, ${role.color}38, ${role.color}0a)` }
-                  : undefined
-              }
+              style={done ? { background: GREEN } : undefined}
             >
-              <span className="flex items-center gap-1 font-mono text-[10px] sm:text-xs" style={active ? { color: role.color } : undefined}>
-                {passed ? <Check className="size-3.5" strokeWidth={3} /> : num(i)}
-              </span>
-              <span className="text-xs font-semibold leading-tight sm:text-sm">{p.name}</span>
-              <span className="hidden text-xs leading-snug text-white/40 md:block">{p.hint}</span>
-            </span>
-          </button>
+              {done ? <Check className="size-5" strokeWidth={3} /> : i + 1}
+            </button>
+            {i < steps.length - 1 && (
+              <span className="mx-1.5 h-[3px] w-5 shrink-0 rounded-full sm:w-7" style={{ background: done ? GREEN : "#222226" }} />
+            )}
+          </Fragment>
         );
       })}
     </div>
   );
 }
 
-/** Where the startup is now, what this role should focus on, and which modules to start with. */
-function Now({
-  role,
-  phase,
-  saved,
-  done,
-  onOpen,
-}: {
-  role: FounderType;
-  phase: Phase;
-  saved: Saved;
-  done: Set<string>;
-  onOpen: (id: string) => void;
-}) {
-  const { now, risk } = focus[phase.id][role.id];
-  const picks = phase.modules.map((id) => modules.findIndex((m) => m.id === id));
-
-  return (
-    <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-      <div className="border-b border-white/10 px-6 pt-6 sm:px-8 sm:pt-8">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-sm text-white/50">Таны стартап одоо аль шатанд байна?</p>
-          <p className="text-xs text-white/30">Шатаа сонго</p>
-        </div>
-        <Ladder
-          role={role}
-          at={phases.findIndex((p) => p.id === phase.id)}
-          onPick={(id) => save({ ...saved, phase: id })}
-        />
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={phase.id}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease } }}
-          exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
-          className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr_1fr]"
-        >
-          <div className="absolute -left-24 -top-24 size-72 rounded-full blur-3xl" style={{ background: `${role.color}1f` }} />
-          <div className="relative">
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: role.color }}>
-              <Target className="size-4" />
-              Одоо таны гол ажил
-            </p>
-            <p className={cn(display, "mt-4 text-2xl font-semibold leading-snug tracking-tight sm:text-[1.75rem]")}>{now}</p>
-            <p className="mt-5 flex items-start gap-2 text-sm text-white/55">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-300" />
-              <span>
-                <span className="font-medium text-white/80">Анхаар: </span>
-                {risk}
-              </span>
-            </p>
-          </div>
-          <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/35">Эхлээд үзэх</p>
-            <ul className="mt-3 space-y-2">
-              {picks.map((i) => {
-                const m = modules[i];
-                const complete = m.tasks.every((q) => done.has(q.id));
-                return (
-                  <li key={m.id}>
-                    <button
-                      onClick={() => onOpen(m.id)}
-                      className="group flex w-full items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5 text-left text-sm transition-colors hover:border-white/20"
-                    >
-                      <span className="font-mono text-xs text-white/35">{num(i)}</span>
-                      <span className="flex-1 text-white/85">{m.title}</span>
-                      {complete ? (
-                        <Check className="size-4" style={{ color: role.color }} />
-                      ) : (
-                        <ArrowRight className="size-4 text-white/30 transition-transform group-hover:translate-x-0.5" />
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function Course({
-  role,
-  phase,
-  saved,
-  done,
-  onOpen,
-}: {
-  role: FounderType;
-  phase: Phase;
-  saved: Saved;
-  done: Set<string>;
-  onOpen: (id: string) => void;
-}) {
-  const index = Math.max(0, modules.findIndex((m) => m.id === saved.module));
-  const current = modules[index];
-  const finished = modules.filter((m) => m.tasks.every((q) => done.has(q.id))).length;
-
-  // Keep the open module's chip centred in the phone row (scrolls only the row, never the page).
-  // Jumps there on load, glides on later changes.
-  const chips = useRef<HTMLDivElement>(null);
-  const loaded = useRef(false);
-  useEffect(() => {
-    const row = chips.current;
-    const chip = row?.children[index] as HTMLElement | undefined;
-    if (!row || !chip) return;
-    const left = chip.offsetLeft - row.offsetLeft - (row.clientWidth - chip.clientWidth) / 2;
-    row.scrollTo({ left, behavior: loaded.current ? "smooth" : "instant" });
-    loaded.current = true;
-  }, [index]);
-
-  return (
-    <div id="course" className="mt-16 scroll-mt-20">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/35">Сургалт</p>
-          <h3 className={cn(display, "mt-1 text-2xl font-semibold tracking-tight")}>{modules.length} модуль</h3>
-        </div>
-        <p className="text-sm text-white/50">
-          <span className="font-semibold text-white">{finished}</span>/{modules.length} дууссан
-        </p>
-      </div>
-
-      {/* Phones: a swipeable row of modules above the lesson. */}
-      <div ref={chips} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
-        {modules.map((m, i) => (
-          <button
-            key={m.id}
-            onClick={() => onOpen(m.id)}
-            className={cn(
-              "shrink-0 rounded-full border px-3.5 py-1.5 text-sm",
-              i === index ? "border-white bg-white font-medium text-black" : "border-white/10 text-white/60",
-            )}
-          >
-            {num(i)}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        <AnimatePresence mode="wait">
-          <ModuleView
-            key={current.id}
-            module={current}
-            index={index}
-            role={role}
-            saved={saved}
-            done={done}
-            onOpen={onOpen}
-          />
-        </AnimatePresence>
-
-        <nav className="sticky top-20 hidden max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.02] p-2 lg:block">
-          {modules.map((m, i) => {
-            const count = m.tasks.filter((q) => done.has(q.id)).length;
-            const complete = count === m.tasks.length;
-            const suggested = phase.modules.includes(m.id);
-            return (
-              <button
-                key={m.id}
-                onClick={() => onOpen(m.id)}
-                aria-current={i === index ? "step" : undefined}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
-                  i === index ? "bg-white/[0.08] text-white" : "text-white/60 hover:bg-white/[0.04] hover:text-white",
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[10px]",
-                    complete ? "text-black" : "bg-white/[0.06] text-white/50",
-                  )}
-                  style={complete ? { background: role.color } : undefined}
-                >
-                  {complete ? <Check className="size-3.5" strokeWidth={3} /> : num(i)}
-                </span>
-                <span className="flex-1 leading-snug">{m.title}</span>
-                {suggested && !complete && <span className="size-1.5 shrink-0 rounded-full" style={{ background: role.color }} />}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-    </div>
-  );
-}
-
-function ModuleView({
-  module: m,
+function StepView({
+  step,
   index,
+  count,
   role,
-  saved,
-  done,
-  onOpen,
+  log,
+  onAward,
+  onNext,
 }: {
-  module: Module;
+  step: Step;
   index: number;
+  count: number;
   role: FounderType;
-  saved: Saved;
-  done: Set<string>;
-  onOpen: (id: string) => void;
+  log: StepLog | undefined;
+  onAward: (patch: StepLog) => void;
+  onNext?: () => void;
 }) {
-  const Icon = roleIcons[role.id];
-  const prev = modules[index - 1];
-  const next = modules[index + 1];
-  const [open, setOpen] = useState<string | null>(m.tasks.find((q) => !done.has(q.id))?.id ?? null);
-
-  const complete = (q: Quest) => {
-    save({ ...saved, done: [...saved.done, q.id] });
-    setOpen(m.tasks.find((t) => t.id !== q.id && !done.has(t.id))?.id ?? null);
-  };
+  const m = modules.find((x) => x.id === step.video);
+  const reward = rewardFor(step.task, role);
+  const doubled = reward > step.task.reward;
+  const [note, setNote] = useState(log?.note ?? "");
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0, transition: { duration: 0.4, ease } }}
-      exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
-      className="min-w-0 space-y-8"
+      exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
+      className="mt-6"
     >
-      <header>
-        <p className="font-mono text-xs text-white/40">
-          Модуль {num(index)} / {modules.length}
-        </p>
-        <h4 className={cn(display, "mt-2 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl")}>{m.title}</h4>
-        <p className="mt-2 text-lg text-white/55">{m.promise}</p>
-      </header>
-
-      {/* The lesson video; a placeholder until it's recorded and uploaded to Bunny. */}
-      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,146,60,.18),transparent_55%),radial-gradient(ellipse_at_80%_90%,rgba(167,139,250,.16),transparent_55%),#0d0d14]">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <span className="grid size-16 place-items-center rounded-full border border-white/15 bg-white/10 backdrop-blur">
-            <Play className="ml-1 size-6 fill-white/80 text-white/80" />
+      <p className="text-sm font-bold text-[#6b6b75]">
+        Алхам {index + 1} / {count}
+      </p>
+      <h2 className="mt-2 text-[2rem] font-black leading-[1.02] tracking-[-0.035em] sm:text-5xl">
+        {step.title}
+        {step.task.boss && (
+          <span className="ml-3 inline-block -translate-y-1.5 rounded-full bg-[#ffd23d] px-2.5 py-1 align-middle text-xs font-black tracking-normal text-black">
+            Том зорилго
           </span>
-          <p className="text-sm text-white/50">
-            Видео бэлтгэгдэж байна · ~{m.minutes} мин
-          </p>
-        </div>
+        )}
+      </h2>
+
+      <div className="mt-6 space-y-3">
+        <Block kind="video" title="Видео үз" points={VIDEO_SPARKS} done={Boolean(log?.video)}>
+          {(done) => (
+            <>
+              {m && <VideoTile module={m} />}
+              {step.video === "startup" && <SearchLoop />}
+              {!done && <Earn label="Үзлээ" points={VIDEO_SPARKS} color={kinds.video.color} onEarn={() => onAward({ video: true })} />}
+            </>
+          )}
+        </Block>
+
+        <Block kind="task" title="Даалгавар хий" points={reward} done={Boolean(log?.task)} locked={!log?.video} lock="Эхлээд видеогоо үз">
+          {(done) => (
+            <>
+              <div>
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-[#6b6b75]">
+                  <span>{skills[step.task.skill]}</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="size-3" />
+                    {step.task.time}
+                  </span>
+                  {doubled && (
+                    <>
+                      <span>·</span>
+                      <span style={{ color: kinds.task.color }}>2× оч — чиний сул тал</span>
+                    </>
+                  )}
+                </p>
+                <p className="mt-1.5 text-xl font-black tracking-tight">{step.task.title}</p>
+                <p className="mt-1.5 font-medium leading-relaxed text-[#c8c8d0]">{step.task.why}</p>
+              </div>
+              <ol className="space-y-2.5">
+                {step.task.steps.map((s, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span
+                      className="grid size-6 shrink-0 place-items-center rounded-full text-xs font-black text-black"
+                      style={{ background: kinds.task.color }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="font-medium leading-relaxed text-[#e4e4e8]">{s}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="rounded-2xl bg-[#1a1a1e] px-4 py-3 text-sm font-medium leading-relaxed text-[#c8c8d0]">
+                <span className="font-black text-white">Дууссаныг яаж мэдэх вэ? </span>
+                {step.task.proof}
+              </p>
+              {!done && <Earn label="Хийлээ" points={reward} color={kinds.task.color} onEarn={() => onAward({ task: true })} />}
+            </>
+          )}
+        </Block>
+
+        <Block kind="note" title="Бодоод бич" points={NOTE_SPARKS} done={Boolean(log?.note)} locked={!log?.task} lock="Эхлээд даалгавраа хий">
+          {(done) => (
+            <>
+              <p className="text-xl font-black leading-snug tracking-tight">{step.reflect}</p>
+              {done ? (
+                <p className="rounded-2xl border-l-4 bg-[#1a1a1e] px-4 py-3 font-medium leading-relaxed text-[#e4e4e8]" style={{ borderColor: kinds.note.color }}>
+                  {log?.note}
+                </p>
+              ) : (
+                <>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={4}
+                    placeholder="Үнэнээ, өөрийнхөөрөө бич…"
+                    className="w-full resize-y rounded-2xl border border-[#2a2a30] bg-black px-4 py-3 font-medium leading-relaxed text-white outline-none transition-colors placeholder:text-[#55555f] focus:border-[#ff5fa8]"
+                  />
+                  <Earn
+                    label="Хадгалах"
+                    points={NOTE_SPARKS}
+                    color={kinds.note.color}
+                    disabled={note.trim().length < 10}
+                    onEarn={() => onAward({ note: note.trim() })}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </Block>
       </div>
 
-      <section>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/35">Гол санаа</p>
-        <ol className="mt-4 space-y-3">
-          {m.points.map((point, i) => (
-            <li key={i} className="flex gap-4">
-              <span className="mt-0.5 font-mono text-xs text-white/30">{num(i)}</span>
-              <span className="leading-relaxed text-white/80">{point}</span>
-            </li>
-          ))}
-        </ol>
-        {m.note && (
-          <p className="mt-5 flex gap-2 text-xs leading-relaxed text-white/40">
-            <Info className="mt-0.5 size-3.5 shrink-0" />
-            {m.note}
-          </p>
-        )}
-      </section>
-
-      <div className="flex gap-4 rounded-2xl border p-5" style={{ borderColor: `${role.color}40`, background: `${role.color}0d` }}>
-        <Icon className="mt-0.5 size-5 shrink-0" style={{ color: role.color }} />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: role.color }}>
-            {role.name}-д зориулсан
-          </p>
-          <p className="mt-1.5 leading-relaxed text-white/85">{m.tips[role.id]}</p>
-        </div>
-      </div>
-
-      <section>
-        <div className="flex items-center justify-between">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/35">
-            <Lightbulb className="size-3.5" />
-            Даалгавар
-          </p>
-          <p className="text-xs text-white/40">
-            {m.tasks.filter((q) => done.has(q.id)).length}/{m.tasks.length}
-          </p>
-        </div>
-        <ul className="mt-4 space-y-3">
-          {m.tasks.map((q) => (
-            <Task
-              key={q.id}
-              task={q}
-              role={role}
-              done={done.has(q.id)}
-              open={open === q.id}
-              onToggle={() => setOpen(open === q.id ? null : q.id)}
-              onComplete={() => complete(q)}
-              onUndo={() => save({ ...saved, done: saved.done.filter((id) => id !== q.id) })}
-            />
-          ))}
-        </ul>
-      </section>
-
-      <nav className="flex items-center justify-between gap-4 border-t border-white/5 pt-6">
-        {prev ? (
-          <button onClick={() => onOpen(prev.id)} className="group min-w-0 text-left">
-            <span className="flex items-center gap-1 text-xs text-white/40">
-              <ArrowLeft className="size-3.5" /> Өмнөх
-            </span>
-            <span className="mt-1 block truncate text-sm font-medium text-white/80 group-hover:text-white">{prev.title}</span>
-          </button>
-        ) : (
-          <span />
-        )}
-        {next && (
-          <button
-            onClick={() => onOpen(next.id)}
-            className="group flex min-w-0 items-center gap-3 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition-transform hover:-translate-y-0.5"
+      <AnimatePresence>
+        {isDone(log) && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }}
+            className="mt-4 flex flex-wrap items-center gap-4 rounded-3xl p-5 text-black"
+            style={{ background: GREEN }}
           >
-            <span className="truncate">Дараагийнх: {next.title}</span>
-            <ArrowRight className="size-4 shrink-0" />
-          </button>
+            <PartyPopper className="size-8 shrink-0" strokeWidth={2.25} />
+            <div className="min-w-0 flex-1">
+              <p className="text-2xl font-black tracking-tight">Алхам дууслаа!</p>
+              <p className="font-semibold text-black/70">+{stepSparks(step, role)} оч цуглууллаа.</p>
+            </div>
+            {onNext ? (
+              <button onClick={onNext} className="inline-flex items-center gap-2 rounded-2xl bg-black px-5 py-3 font-black text-white transition-transform active:translate-y-0.5">
+                Дараагийн алхам
+                <ArrowRight className="size-5" />
+              </button>
+            ) : (
+              <p className="font-black">Энэ шатны бүх алхам дууслаа.</p>
+            )}
+          </motion.div>
         )}
-      </nav>
+      </AnimatePresence>
     </motion.article>
   );
 }
 
-function Task({
-  task,
-  role,
+/** One part of a step. Open while it's the thing to do; done or locked parts fold, and a done part can be reopened to look back. */
+function Block({
+  kind,
+  title,
+  points,
   done,
-  open,
-  onToggle,
-  onComplete,
-  onUndo,
+  locked,
+  lock,
+  children,
 }: {
-  task: Quest;
-  role: FounderType;
+  kind: keyof typeof kinds;
+  title: string;
+  points: number;
   done: boolean;
-  open: boolean;
-  onToggle: () => void;
-  onComplete: () => void;
-  onUndo: () => void;
+  locked?: boolean;
+  lock?: string;
+  children: (done: boolean) => React.ReactNode;
 }) {
-  const reward = rewardFor(task, role);
-  const doubled = reward > task.reward;
-  // Show the tick and "+N оч" for a moment before the task collapses.
-  const [ticking, setTicking] = useState(false);
-  const checked = done || ticking;
-
-  function tick() {
-    setTicking(true);
-    setTimeout(() => {
-      onComplete();
-      setTicking(false);
-    }, 450);
-  }
+  const [peek, setPeek] = useState(false);
+  const { color, icon: Icon } = kinds[kind];
+  const open = !locked && (!done || peek);
 
   return (
-    <li
-      className={cn(
-        "relative overflow-hidden rounded-2xl border bg-white/[0.03] transition-colors",
-        done ? "border-white/5" : open ? "border-white/20 bg-white/[0.05]" : "border-white/10 hover:border-white/20",
-      )}
-    >
-      <div className="flex items-start gap-4 p-4 sm:p-5">
-        <button
-          onClick={done ? onUndo : tick}
-          disabled={ticking}
-          aria-label={done ? "Буцааж нээх" : "Дууссан гэж тэмдэглэх"}
-          className={cn(
-            "relative mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border-2 transition-all duration-300",
-            checked ? "scale-110 border-transparent" : "border-white/25 hover:border-white/60",
-          )}
-          style={checked ? { background: role.color } : undefined}
+    <section className={cn(card, "overflow-hidden", open && !done && "border-[#2e2e34]")}>
+      <button
+        onClick={() => done && setPeek(!peek)}
+        disabled={!done}
+        className="flex w-full items-center gap-3 p-4 text-left sm:p-5"
+        aria-expanded={open}
+      >
+        <span
+          className={cn("grid size-10 shrink-0 place-items-center rounded-2xl text-black", locked && "opacity-30")}
+          style={{ background: done ? GREEN : color }}
         >
-          {checked && <Check className="size-3.5 text-black" strokeWidth={3} />}
-          {ticking && (
-            <motion.span
-              initial={{ opacity: 0, y: 0 }}
-              animate={{ opacity: [0, 1, 0], y: -26 }}
-              transition={{ duration: 0.9, ease: "easeOut" }}
-              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap text-xs font-semibold text-amber-200"
-            >
-              +{reward} оч
-            </motion.span>
-          )}
-        </button>
-
-        <button onClick={onToggle} disabled={done} className="min-w-0 flex-1 text-left" aria-expanded={open}>
-          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-white/40">
-            {task.boss && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-white/80">
-                <Flag className="size-3" />
-                Зорилго
-              </span>
-            )}
-            <span>{skills[task.skill]}</span>
-            <span className="inline-flex items-center gap-1">
-              <Clock className="size-3" />
-              {task.time}
-            </span>
-            {doubled && !done && <span style={{ color: role.color }}>2× оч · таны сорилт</span>}
-          </span>
-          <span className={cn("mt-1.5 block font-semibold", done && "text-white/40 line-through decoration-white/20")}>
-            {task.title}
-          </span>
-          {!done && <span className="mt-1 block text-sm leading-relaxed text-white/55">{task.why}</span>}
-        </button>
-
-        <span className={cn("shrink-0 text-sm font-semibold tabular-nums", done ? "text-white/30" : "text-amber-200")}>
-          +{reward}
+          {done ? <Check className="size-5" strokeWidth={3} /> : <Icon className="size-5" strokeWidth={2.5} />}
         </span>
-        {!done && <ChevronDown className={cn("mt-0.5 size-4 shrink-0 text-white/30 transition-transform", open && "rotate-180")} />}
-      </div>
-
+        <span className={cn("flex-1 text-lg font-black tracking-tight", locked && "text-[#55555f]")}>{title}</span>
+        {locked ? (
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#55555f]">
+            <Lock className="size-3.5" />
+            <span className="hidden sm:inline">{lock}</span>
+          </span>
+        ) : (
+          <span
+            className="rounded-full px-2.5 py-1 text-xs font-black"
+            style={done ? { background: GREEN, color: "#000" } : { background: "#1f1f23", color: GREEN }}
+          >
+            +{points}
+          </span>
+        )}
+      </button>
       <AnimatePresence initial={false}>
-        {open && !done && (
+        {open && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease }}
+            transition={{ duration: 0.3, ease }}
             className="overflow-hidden"
           >
-            <div className="space-y-4 border-t border-white/5 px-4 pb-5 pt-4 sm:pl-[3.75rem] sm:pr-5">
-              <ol className="space-y-2.5 text-sm text-white/80">
-                {task.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-semibold text-white/70">
-                      {i + 1}
-                    </span>
-                    <span className="leading-relaxed">{step}</span>
-                  </li>
-                ))}
-              </ol>
-              <p className="rounded-xl bg-white/[0.04] px-3.5 py-2.5 text-sm text-white/60">
-                <span className="font-medium text-white/85">Дууссаныг яаж мэдэх вэ: </span>
-                {task.proof}
-              </p>
-              <button
-                onClick={tick}
-                disabled={ticking}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-black transition-transform hover:-translate-y-0.5"
-              >
-                <Check className="size-4" />
-                Дууссан · +{reward} оч
-              </button>
-            </div>
+            <div className="space-y-5 px-4 pb-5 sm:px-5 sm:pb-6">{children(done)}</div>
           </motion.div>
         )}
       </AnimatePresence>
-    </li>
+    </section>
+  );
+}
+
+/** The lesson video; a placeholder until it's recorded and uploaded to Bunny. */
+function VideoTile({ module: m }: { module: Module }) {
+  return (
+    <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl" style={{ background: kinds.video.color }}>
+      <p className="absolute left-4 right-4 top-4 text-sm font-bold text-white/90">{m.title}</p>
+      <span className="grid size-16 place-items-center rounded-full bg-white shadow-xl">
+        <Play className="ml-1 size-7 fill-black text-black" />
+      </span>
+      <span className="absolute bottom-3 left-3 rounded-lg bg-black/50 px-2 py-1 text-xs font-bold">~{m.minutes} мин</span>
+      <span className="absolute bottom-3 right-3 rounded-lg bg-black/50 px-2 py-1 text-xs font-bold">Видео удахгүй</span>
+    </div>
+  );
+}
+
+/** A button that pays sparks: the "+N оч" floats up, then the part is marked done. */
+function Earn({
+  label,
+  points,
+  color,
+  disabled,
+  onEarn,
+}: {
+  label: string;
+  points: number;
+  color: string;
+  disabled?: boolean;
+  onEarn: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        setBusy(true);
+        setTimeout(() => {
+          onEarn();
+          setBusy(false);
+        }, 450);
+      }}
+      disabled={disabled || busy}
+      className="relative inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-black text-black transition active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
+      style={{ background: color }}
+    >
+      <Check className="size-5" strokeWidth={3} />
+      {label} · +{points} оч
+      {busy && (
+        <motion.span
+          initial={{ opacity: 0, y: 0 }}
+          animate={{ opacity: [0, 1, 0], y: -36 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+          className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 whitespace-nowrap text-base font-black"
+          style={{ color: GREEN }}
+        >
+          +{points} оч
+        </motion.span>
+      )}
+    </button>
+  );
+}
+
+function Wallet({ balance, earned, spent }: { balance: number; earned: number; spent: number }) {
+  return (
+    <div className="rounded-3xl p-5 text-black" style={{ background: GREEN }}>
+      <p className="flex items-center gap-1.5 text-sm font-bold">
+        <Zap className="size-4 fill-black" />
+        Чиний оч
+      </p>
+      <p className="mt-1 text-5xl font-black tracking-tighter">
+        <Counter value={balance} />
+      </p>
+      <p className="mt-2 text-sm font-semibold text-black/60">
+        Нийт {earned.toLocaleString("en-US")} цуглуулсан · {spent.toLocaleString("en-US")} зарцуулсан
+      </p>
+    </div>
+  );
+}
+
+/** Spend sparks on a meeting with one of the DIIL co-founders. */
+function Meet({ balance, met, onMeet }: { balance: number; met: FounderType["id"][]; onMeet: (id: FounderType["id"]) => void }) {
+  // The founder whose "Уулзах" was tapped once: a second tap within a few seconds confirms.
+  const [arming, setArming] = useState<FounderType["id"] | null>(null);
+  useEffect(() => {
+    if (!arming) return;
+    const timer = setTimeout(() => setArming(null), 3500);
+    return () => clearTimeout(timer);
+  }, [arming]);
+
+  return (
+    <div className="rounded-3xl bg-[#ff5fa8] p-5 text-black">
+      <p className="text-xl font-black leading-tight tracking-tight">Үүсгэн байгуулагчидтай уулз</p>
+      <p className="mt-1 text-sm font-semibold text-black/65">Очоо уулзалтаар соль. Нэг уулзалт — {MEETING_COST} оч.</p>
+      <ul className="mt-4 space-y-2">
+        {team.map((t) => {
+          const booked = met.includes(t.id);
+          const short = MEETING_COST - balance;
+          return (
+            <li key={t.id} className="flex items-center gap-3 rounded-2xl bg-black/10 p-2.5">
+              <span className="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl text-black" style={{ background: t.color }}>
+                <Face type={t} size={40} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-black">{t.title}</span>
+                <span className="block text-xs font-semibold text-black/60">DIIL-ийн үүсгэн байгуулагч</span>
+              </span>
+              {booked ? (
+                <Link href="/contact" className="rounded-xl bg-black px-3 py-2 text-xs font-black text-white">
+                  Цагаа товлох
+                </Link>
+              ) : short > 0 ? (
+                <span className="text-right text-xs font-bold leading-tight text-black/60">
+                  {short} оч
+                  <br />
+                  дутуу
+                </span>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (arming === t.id) {
+                      onMeet(t.id);
+                      setArming(null);
+                    } else {
+                      setArming(t.id);
+                    }
+                  }}
+                  className="rounded-xl bg-black px-3 py-2 text-xs font-black text-white transition-transform active:translate-y-0.5"
+                >
+                  {arming === t.id ? `${MEETING_COST} оч зарцуулах уу?` : "Уулзах"}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** All four stages: open ones can be revisited, the rest unlock with sparks. */
+function Stages({ saved, at, onStage }: { saved: Saved; at: number; onStage: (i: number) => void }) {
+  return (
+    <div className={cn(card, "p-5")}>
+      <p className="text-lg font-black tracking-tight">Шатууд</p>
+      <ul className="mt-3 space-y-1">
+        {phases.map((p, i) => {
+          const open = i <= saved.reached;
+          const reward = rewards[p.id];
+          return (
+            <li key={p.id}>
+              <button
+                onClick={() => onStage(i)}
+                disabled={!open || i === at}
+                className={cn("flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-colors", open && i !== at && "hover:bg-[#1a1a1e]")}
+              >
+                <span
+                  className="grid size-9 shrink-0 place-items-center rounded-xl text-sm font-black"
+                  style={open ? { background: stageColors[i], color: "#000" } : { background: "#1a1a1e", color: "#55555f" }}
+                >
+                  {open ? i + 1 : <Lock className="size-4" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cn("block font-bold", !open && "text-[#6b6b75]")}>{p.name}</span>
+                  {reward && (
+                    <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[#9a9aa6]">
+                      <Gift className="size-3.5" />
+                      {reward}
+                    </span>
+                  )}
+                </span>
+                {i === at && (
+                  <span className="text-xs font-black" style={{ color: GREEN }}>
+                    Одоо
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

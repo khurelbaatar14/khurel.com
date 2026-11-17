@@ -4,7 +4,8 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin", "cyrillic"],
+  // cyrillic-ext carries the Mongolian Ө and Ү.
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
   variable: "--font-inter",
 });
 
