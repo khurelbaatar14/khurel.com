@@ -717,37 +717,37 @@ export type Perk = {
   color: string;
 };
 
-/** The DIIL app (diil.work) for 6 months free. The code is handed out once the perk opens. */
-export const DIIL_APP = { url: "https://diil.work", code: "" };
+/** The DIIL app (diil.app) for 6 months free. The code is handed out once the perk opens. */
+export const DIIL_APP = { url: "https://diil.app", code: "" };
 
 export const perks: Perk[] = [
   {
-    id: "diil-app",
-    title: "DIIL 6 сар үнэгүй",
-    body: "Анхны багаа DIIL-ээр ол. Промо кодоор 6 сар үнэгүй ашигла.",
-    unlock: { kind: "sparks", at: 300 },
-    color: "#37f59a",
-  },
-  {
     id: "meet",
-    title: "DIIL-ийн үүсгэн байгуулагчидтай уулз",
-    body: "CEO, CTO, CMO-той нүүр тулж уулзаад стартапаа ярилц.",
+    title: "diil.app-ийн үүсгэн байгуулагчидтай уулз",
+    body: "Онлайн хичээлүүдээ дуусгамагц diil.app-ийн үүсгэн байгуулагчидтай долоо хоног болгон биечлэн уулзаж, зөвлөгөө тусламж авч, үр дүн гаргах.",
     unlock: { kind: "spend", cost: MEETING_COST },
     color: "#ff5fa8",
   },
   {
+    id: "diil-app",
+    title: "diil.app 6 сар үнэгүй",
+    body: "Хамгийн эхний ажилд авах мэдрэмжээ diil.app-тай цуг. diil.app-ийг үнэгүй ашиглах эрх.",
+    unlock: { kind: "sparks", at: 300 },
+    color: "#37f59a",
+  },
+  {
     id: "corporates",
-    title: "Корпорацтай танилцуулга",
-    body: "Тохирох томоохон компанийн шийдвэр гаргагчтай шууд холбоно.",
+    title: "Том компаниудтай холбоно",
+    body: "Үр дүн гаргасан стартапуудыг том компаниудтай холбож өгнө, эхний борлуулалт хийхэд нь дэмжинэ, үр дүн гаргах.",
     unlock: { kind: "stage", at: "customers" },
     color: "#ffd23d",
   },
   {
     id: "investors",
-    title: "Хөрөнгө оруулагчтай танилцуулга",
-    body: "Таньдаг сахиусан тэнгэр, хөрөнгө оруулагчидтай холбоно.",
+    title: "Хөрөнгө оруулагчидтай холбоно",
+    body: "Яг ямар асуудал шийдэж, юу борлуулахаа ойлгосон стартапуудыг хөрөнгө оруулагч нартай холбож өгнө, питч-дэк дээр зөвлөнө, үр дүн гаргах.",
     unlock: { kind: "stage", at: "growth" },
-    color: "#37f59a",
+    color: "#3d7bff",
   },
 ];
 
