@@ -21,10 +21,13 @@ import {
   RotateCcw,
   Zap,
 } from "lucide-react";
+import { saveCopy } from "@/app/founders/edit/actions";
+import { CopyProvider, Text, useEditing, usePlain } from "@/components/founder/Copy";
 import DiilLogo from "@/components/founder/DiilLogo";
 import Orbit, { Face } from "@/components/founder/Orbit";
 import SearchLoop from "@/components/founder/SearchLoop";
 import { founderTypes, phases, rewardFor, skills, type FounderType, type Phase } from "@/lib/founder";
+import type { Copy } from "@/lib/copy";
 import { modules, type Module } from "@/lib/founder-course";
 import {
   MEETING_COST,
@@ -121,8 +124,13 @@ const noop = () => () => {};
 // Founders in the order a team is usually introduced.
 const team = ["hustler", "hacker", "hipster"].map((id) => founderTypes.find((t) => t.id === id)!);
 
-export default function FounderPath() {
+export default function FounderPath({ copy, edit = false }: { copy: Copy; edit?: boolean }) {
   const raw = useSyncExternalStore(subscribe, read, () => EMPTY);
+  // Edit mode (/founders/edit): the texts as typed so far, and as last saved.
+  const [draft, setDraft] = useState(copy);
+  const [savedCopy, setSavedCopy] = useState(copy);
+  const [preview, setPreview] = useState(false);
+  const changes = Object.fromEntries(Object.entries(draft).filter(([key, value]) => value !== savedCopy[key]));
   // The server can't see saved progress, so it renders the first screen. On the first client render,
   // jump straight to what was saved: a new presence key skips the crossfade.
   const hydrated = useSyncExternalStore(noop, () => true, () => false);
@@ -144,7 +152,8 @@ export default function FounderPath() {
   const earned = role ? totalEarned(role, saved.logs) : 0;
   const balance = Math.max(0, earned - saved.spent);
   const phase = phases.find((p) => p.id === saved.stage);
-  const screen = !role ? "role" : !phase || picking ? "stage" : "path";
+  // Editing is about the landing page, whatever this browser has saved.
+  const screen = edit || !role ? "role" : !phase || picking ? "stage" : "path";
 
   function top() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -178,11 +187,12 @@ export default function FounderPath() {
   return (
     // overflow-clip, not -hidden: a hidden box can still be scrolled sideways (e.g. focusing an orbiting
     // founder near the edge), and it would stop the top bar from sticking.
+    <CopyProvider value={{ copy: draft, edit: edit && !preview, set: (key, value) => setDraft((d) => ({ ...d, [key]: value })) }}>
     <div className="min-h-screen overflow-clip bg-black font-[family-name:var(--font-display)] text-white antialiased selection:bg-[#37f59a] selection:text-black">
       <TopBar balance={balance} />
 
       <AnimatePresence key={mount} mode="wait" initial={false}>
-        {screen === "role" && <RoleScreen key="role" onPick={pickRole} />}
+        {screen === "role" && <RoleScreen key="role" onPick={edit ? () => {} : pickRole} />}
         {screen === "stage" && role && (
           <StageScreen
             key="stage"
@@ -251,6 +261,74 @@ export default function FounderPath() {
           </button>
         </div>
       </footer>
+
+      {edit && (
+        <EditBar
+          changes={changes}
+          preview={preview}
+          onPreview={() => setPreview(!preview)}
+          onSaved={() => setSavedCopy(draft)}
+        />
+      )}
+    </div>
+    </CopyProvider>
+  );
+}
+
+/** Edit mode's bar: what's unsaved, a preview of the page as visitors see it, and Save. */
+function EditBar({ changes, preview, onPreview, onSaved }: { changes: Copy; preview: boolean; onPreview: () => void; onSaved: () => void }) {
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [error, setError] = useState("");
+  const count = Object.keys(changes).length;
+
+  // Leaving with unsaved changes asks first.
+  useEffect(() => {
+    if (!count) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [count]);
+
+  async function saveAll() {
+    setStatus("saving");
+    const result = await saveCopy(changes);
+    if (result.ok) {
+      onSaved();
+      setStatus("saved");
+    } else {
+      setError(result.error);
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-2xl flex-wrap items-center gap-2 rounded-3xl bg-white p-3 pl-5 text-black shadow-2xl sm:bottom-6">
+      <div className="min-w-0 flex-1 basis-60">
+        <p className="font-black">Засварлах горим</p>
+        <p className="text-xs font-semibold text-black/55">
+          {status === "error"
+            ? error
+            : count
+              ? `${count} өөрчлөлт хадгалаагүй`
+              : status === "saved"
+                ? "Хадгаллаа — сайт дээр шинэчлэгдлээ."
+                : "Текст дээр дараад шууд зас. *Одоор* хүрээлсэн үг ногооноор тодорно."}
+        </p>
+      </div>
+      <button onClick={onPreview} className="rounded-2xl bg-black/5 px-4 py-2.5 text-sm font-black transition-colors hover:bg-black/10">
+        {preview ? "Засах" : "Харах"}
+      </button>
+      <a href="/founders" target="_blank" rel="noreferrer" className="rounded-2xl bg-black/5 px-4 py-2.5 text-sm font-black transition-colors hover:bg-black/10">
+        Сайт ↗
+      </a>
+      <button
+        onClick={saveAll}
+        disabled={!count || status === "saving"}
+        className="rounded-2xl px-5 py-2.5 text-sm font-black text-black transition active:translate-y-0.5 disabled:opacity-40"
+        style={{ background: GREEN }}
+      >
+        {status === "saving" ? "Хадгалж байна…" : "Хадгалах"}
+      </button>
     </div>
   );
 }
@@ -329,39 +407,52 @@ const screenMotion = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.18 } },
 };
 
+/** A link that scrolls within the page; plain text while editing, so its words can be clicked into. */
+function Jump({ to, className, style, children }: { to: string; className: string; style?: React.CSSProperties; children: React.ReactNode }) {
+  const editing = useEditing();
+  return editing ? (
+    <span className={className} style={style}>
+      {children}
+    </span>
+  ) : (
+    <a href={to} className={className} style={style}>
+      {children}
+    </a>
+  );
+}
+
 /** The landing page, told as a story: the promise, your role, the very first lesson, then what else you get. */
 function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
   const first = modules.find((m) => m.id === "startup");
+  const editing = useEditing();
+  // While editing, the role cards are plain blocks so their words can be clicked into.
+  const RoleCard = editing ? "div" : "button";
   return (
     <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
       <div className="grid items-center gap-x-14 gap-y-6 py-10 lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:py-14">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full bg-[#121214] px-3 py-1.5 text-sm font-bold text-[#c8c8d0] ring-1 ring-[#222226]">
             <span className="size-2 rounded-full" style={{ background: GREEN }} />
-            DIIL for startups
+            <Text k="hero.badge" />
           </p>
-          <h1 className="mt-6 text-[2.5rem] font-black leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.1rem]">
-            Чиний стартапыг <span style={{ color: GREEN }}>дараагийн шатанд</span> гаргая
-          </h1>
-          <p className="mt-6 max-w-lg text-xl font-bold leading-snug text-[#c8c8d0] sm:text-2xl">
-            Өөрийн бизнесээ эхлүүлж гайхалтай түүх эндээс эхлүүлээрэй.
-          </p>
+          <Text k="hero.title" as="h1" className="mt-6 block text-[2.5rem] font-black leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.1rem]" />
+          <Text k="hero.sub" as="p" className="mt-6 max-w-lg text-xl font-bold leading-snug text-[#c8c8d0] sm:text-2xl" />
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#roles"
+            <Jump
+              to="#roles"
               className="inline-flex items-center gap-2 rounded-2xl px-5 py-3.5 text-[15px] font-black text-black transition active:translate-y-0.5"
               style={{ background: GREEN }}
             >
-              Эхлэх
+              <Text k="hero.start" />
               <ArrowRight className="size-5" />
-            </a>
-            <a
-              href="#first-lesson"
+            </Jump>
+            <Jump
+              to="#first-lesson"
               className="inline-flex items-center gap-2 rounded-2xl bg-[#1c1c20] px-5 py-3.5 text-[15px] font-black text-white ring-1 ring-[#2a2a30] transition hover:bg-[#232328] active:translate-y-0.5"
             >
               <Play className="size-5" />
-              Эхний хичээл үзэх
-            </a>
+              <Text k="hero.watch" />
+            </Jump>
           </div>
         </div>
         <Orbit onPick={onPick} />
@@ -369,16 +460,14 @@ function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
 
       <section id="roles" className="scroll-mt-20 border-t border-[#1a1a1e] pt-14">
         <Progress at={0} />
-        <h2 className="mt-6 text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Чиний роль юу вэ?</h2>
-        <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
-          Нэгийг нь сонго — чамд тохирсон замыг гаргаад өгье. Дараа нь сольж болно.
-        </p>
+        <Text k="roles.title" as="h2" className="mt-6 block text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl" />
+        <Text k="roles.sub" as="p" className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]" />
         <div className="mt-8 grid gap-3 lg:grid-cols-3">
           {team.map((t) => (
-            <button
+            <RoleCard
               key={t.id}
-              onClick={() => onPick(t.id)}
-              className={cn(card, "group flex flex-col p-5 text-left transition duration-200 hover:-translate-y-1 hover:border-[var(--c)] sm:p-6")}
+              onClick={editing ? undefined : () => onPick(t.id)}
+              className={cn(card, "group flex flex-col p-5 text-left transition duration-200 sm:p-6", !editing && "hover:-translate-y-1 hover:border-[var(--c)]")}
               style={{ "--c": t.color } as React.CSSProperties}
             >
               <span
@@ -391,42 +480,40 @@ function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
                 <span className="text-3xl font-black tracking-tight">{t.title}</span>
                 <span className="text-lg font-bold text-[#6b6b75]">/ {t.name}</span>
               </span>
-              <span className="mt-2 flex-1 text-[17px] font-medium leading-snug text-[#c8c8d0]">{t.strength}</span>
+              <Text k={`role.${t.id}`} className="mt-2 block flex-1 text-[17px] font-medium leading-snug text-[#c8c8d0]" />
               <span className="mt-6 inline-flex items-center gap-2 text-sm font-black" style={{ color: t.color }}>
-                Сонгох
+                <Text k="roles.pick" />
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </span>
-            </button>
+            </RoleCard>
           ))}
         </div>
       </section>
 
       {first && (
         <section id="first-lesson" className="mt-20 scroll-mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
-          <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Хамгийн эхний хичээл үзэх</h2>
-          <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
-            {first.title} {first.promise}
-          </p>
+          <Text k="lesson.title" as="h2" className="block text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl" />
+          <Text k="lesson.sub" as="p" className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]" />
           <div className="mt-8 grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <div>
               <VideoTile module={first} />
               <ol className="mt-4 space-y-3">
-                {first.points.map((point, i) => (
+                {first.points.map((_, i) => (
                   <li key={i} className={cn(card, "flex gap-3 p-4")}>
                     <span className="grid size-7 shrink-0 place-items-center rounded-full text-sm font-black text-black" style={{ background: kinds.video.color }}>
                       {i + 1}
                     </span>
-                    <span className="font-medium leading-relaxed text-[#e4e4e8]">{point}</span>
+                    <Text k={`lesson.point.${i + 1}`} className="font-medium leading-relaxed text-[#e4e4e8]" />
                   </li>
                 ))}
               </ol>
             </div>
             <SearchLoop />
           </div>
-          <a href="#roles" className="mt-6 inline-flex items-center gap-2 text-sm font-black transition-opacity hover:opacity-80" style={{ color: GREEN }}>
-            Роль сонгоод үргэлжлүүл
+          <Jump to="#roles" className="mt-6 inline-flex items-center gap-2 text-sm font-black transition-opacity hover:opacity-80" style={{ color: GREEN }}>
+            <Text k="lesson.cta" />
             <ArrowRight className="size-4 -rotate-90" />
-          </a>
+          </Jump>
         </section>
       )}
 
@@ -1070,27 +1157,12 @@ function PerkIcon({ perk, className }: { perk: Perk; className?: string }) {
   return <Icon className={className} strokeWidth={2.25} />;
 }
 
-/** The phrase every perk ends on, "үр дүн гаргах" (getting results), marked like a highlighter. */
-function Results({ text }: { text: string }) {
-  return text.split(/(үр дүн гаргах)/).map((part, i) =>
-    part === "үр дүн гаргах" ? (
-      <mark key={i} className="whitespace-nowrap rounded-md px-1 font-black text-black" style={{ background: GREEN }}>
-        {part}
-      </mark>
-    ) : (
-      <Fragment key={i}>{part}</Fragment>
-    ),
-  );
-}
-
 /** The landing page's other benefits: every perk and what opens it, like a startup program page. */
 function Perks() {
   return (
     <section className="mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
-      <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Бусад давуу тал</h2>
-      <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
-        Хичээлээс гадна. Оч цуглуулах тусам шинэ боломж нээгдэнэ.
-      </p>
+      <Text k="perks.title" as="h2" className="block text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl" />
+      <Text k="perks.sub" as="p" className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]" />
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {perks.map((perk) => {
           const { need } = perkState(perk, 0, -1, 0);
@@ -1099,10 +1171,8 @@ function Perks() {
               <span className="grid size-12 place-items-center rounded-2xl text-black" style={{ background: perk.color }}>
                 <PerkIcon perk={perk} className="size-6" />
               </span>
-              <p className="mt-5 text-2xl font-black leading-tight tracking-tight">{perk.title}</p>
-              <p className="mt-2 flex-1 text-[16px] font-medium leading-relaxed text-[#c8c8d0]">
-                <Results text={perk.body} />
-              </p>
+              <Text k={`perk.${perk.id}.title`} as="p" className="mt-5 text-2xl font-black leading-tight tracking-tight" />
+              <Text k={`perk.${perk.id}.body`} as="p" mark="marker" className="mt-2 flex-1 text-[16px] font-medium leading-relaxed text-[#c8c8d0]" />
               <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#1c1c20] px-3 py-1.5 text-xs font-black" style={{ color: perk.color }}>
                 {perk.unlock.kind === "start" ? <Check className="size-3.5" strokeWidth={3} /> : <Lock className="size-3.5" />}
                 {need}
@@ -1117,6 +1187,7 @@ function Perks() {
 
 /** The founder's perks on the path: what's open, what's left, and the DIIL code once it opens. */
 function PerksCard({ earned, reached, balance }: { earned: number; reached: number; balance: number }) {
+  const plain = usePlain();
   const [shown, setShown] = useState(false);
   const [copied, setCopied] = useState(false);
   // Meetings have their own card.
@@ -1151,7 +1222,9 @@ function PerksCard({ earned, reached, balance }: { earned: number; reached: numb
                   {open ? <PerkIcon perk={perk} className="size-4" /> : <Lock className="size-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={cn("block text-sm font-bold leading-snug", !open && "text-[#6b6b75]")}>{perk.title}</span>
+                  <span className={cn("block text-sm font-bold leading-snug", !open && "text-[#6b6b75]")}>
+                    {plain(`perk.${perk.id}.title`, perk.title)}
+                  </span>
                   {!open && <span className="block text-xs font-semibold text-[#55555f]">{need}</span>}
                 </span>
                 {open && promo && !shown && (
@@ -1197,13 +1270,15 @@ function PerksCard({ earned, reached, balance }: { earned: number; reached: numb
 
 /** All four stages: open ones can be revisited, the rest unlock with sparks. */
 function Stages({ saved, at, onStage }: { saved: Saved; at: number; onStage: (i: number) => void }) {
+  const plain = usePlain();
   return (
     <div className={cn(card, "p-5")}>
       <p className="text-lg font-black tracking-tight">Шатууд</p>
       <ul className="mt-3 space-y-1">
         {phases.map((p, i) => {
           const open = i <= saved.reached;
-          const reward = perks.find((perk) => perk.unlock.kind === "stage" && perk.unlock.at === p.id)?.title;
+          const perk = perks.find((x) => x.unlock.kind === "stage" && x.unlock.at === p.id);
+          const reward = perk && plain(`perk.${perk.id}.title`, perk.title);
           return (
             <li key={p.id}>
               <button

@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google";
 import FounderPath from "@/components/founder/FounderPath";
-
-// Tight, heavy grotesk for the whole app. Its cyrillic-ext subset has the Mongolian Ө and Ү.
-const font = Inter_Tight({
-  subsets: ["latin", "cyrillic", "cyrillic-ext"],
-  variable: "--font-display",
-});
+import { getCopy } from "@/lib/copy";
 
 export const metadata: Metadata = {
   title: "DIIL for startups",
   description: "Үүргээ сонго, стартапынхаа шатыг сонго — видео үзэж, даалгавар хийж, оч цуглуулаад үүсгэн байгуулагчидтай уулз.",
 };
 
-export default function FounderPage() {
-  return (
-    <main className={font.variable}>
-      <FounderPath />
-    </main>
-  );
+// A static page with the texts saved at /founders/edit. Saving refreshes it straight away; the
+// timer is a backstop for edits made straight in the database.
+export const dynamic = "force-static";
+export const revalidate = 60;
+
+export default async function FoundersPage() {
+  return <FounderPath copy={await getCopy()} />;
 }
