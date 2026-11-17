@@ -4,7 +4,7 @@ import { getCopy } from "@/lib/copy";
 
 export const metadata: Metadata = {
   title: "DIIL for startups",
-  description: "Үүргээ сонго, стартапынхаа шатыг сонго — видео үзэж, даалгавар хийж, оч цуглуулаад үүсгэн байгуулагчидтай уулз.",
+  description: "Үүргээ сонго, стартапынхаа шатыг сонго — видео үзэж, даалгавар хийж, оноо цуглуулаад үүсгэн байгуулагчидтай уулз.",
 };
 
 // A static page with the texts saved at /founders/edit. Saving refreshes it straight away; the

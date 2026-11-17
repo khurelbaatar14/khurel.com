@@ -374,7 +374,7 @@ function TopBar({ balance }: { balance: number }) {
         </Link>
         <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-black text-black" style={{ background: GREEN }}>
           <Zap className="size-4 fill-black" />
-          <Counter value={balance} /> оч
+          <Counter value={balance} /> оноо
         </span>
       </div>
     </header>
@@ -616,7 +616,7 @@ function StageScreen({
         Стартап чинь одоо хаана явж байна?
       </h1>
       <p className="mt-5 max-w-lg text-lg font-medium leading-relaxed text-[#9a9aa6]">
-        {first ? "Үнэнээ сонго. Тэндээсээ эхэлнэ." : "Түгжээтэй шатууд оч цуглуулахаар нээгдэнэ."}
+        {first ? "Үнэнээ сонго. Тэндээсээ эхэлнэ." : "Түгжээтэй шатууд оноо цуглуулахаар нээгдэнэ."}
       </p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -770,13 +770,13 @@ function StageBar({ role, phase, saved }: { role: FounderType; phase: Phase; sav
         <p className="text-sm font-bold text-[#9a9aa6]">
           {!next ? (
             <>
-              {got} / {total} оч
+              {got} / {total} оноо
             </>
           ) : open ? (
             <span style={{ color: GREEN }}>{next.name} нээгдсэн</span>
           ) : (
             <>
-              {next.name} нээгдэхэд <span className="text-white">{unlock - got} оч</span> дутуу
+              {next.name} нээгдэхэд <span className="text-white">{unlock - got} оноо</span> дутуу
             </>
           )}
         </p>
@@ -908,7 +908,7 @@ function StepView({
                   {doubled && (
                     <>
                       <span>·</span>
-                      <span style={{ color: kinds.task.color }}>2× оч — чиний сул тал</span>
+                      <span style={{ color: kinds.task.color }}>2× оноо — чиний сул тал</span>
                     </>
                   )}
                 </p>
@@ -979,7 +979,7 @@ function StepView({
             <PartyPopper className="size-8 shrink-0" strokeWidth={2.25} />
             <div className="min-w-0 flex-1">
               <p className="text-2xl font-black tracking-tight">Алхам дууслаа!</p>
-              <p className="font-semibold text-black/70">+{stepSparks(step, role)} оч цуглууллаа.</p>
+              <p className="font-semibold text-black/70">+{stepSparks(step, role)} оноо цуглууллаа.</p>
             </div>
             {onNext ? (
               <button onClick={onNext} className="inline-flex items-center gap-2 rounded-2xl bg-black px-5 py-3 font-black text-white transition-transform active:translate-y-0.5">
@@ -1081,7 +1081,7 @@ function VideoTile({ module: m, large }: { module: Module; large?: boolean }) {
   );
 }
 
-/** A button that pays sparks: the "+N оч" floats up, then the part is marked done. */
+/** A button that pays sparks: the "+N оноо" floats up, then the part is marked done. */
 function Earn({
   label,
   points,
@@ -1110,7 +1110,7 @@ function Earn({
       style={{ background: color }}
     >
       <Check className="size-5" strokeWidth={3} />
-      {label} · +{points} оч
+      {label} · +{points} оноо
       {busy && (
         <motion.span
           initial={{ opacity: 0, y: 0 }}
@@ -1119,7 +1119,7 @@ function Earn({
           className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 whitespace-nowrap text-base font-black"
           style={{ color: GREEN }}
         >
-          +{points} оч
+          +{points} оноо
         </motion.span>
       )}
     </button>
@@ -1131,7 +1131,7 @@ function Wallet({ balance, earned, spent }: { balance: number; earned: number; s
     <div className="rounded-3xl p-5 text-black" style={{ background: GREEN }}>
       <p className="flex items-center gap-1.5 text-sm font-bold">
         <Zap className="size-4 fill-black" />
-        Чиний оч
+        Чиний оноо
       </p>
       <p className="mt-1 text-5xl font-black tracking-tighter">
         <Counter value={balance} />
@@ -1156,7 +1156,7 @@ function Meet({ balance, met, onMeet }: { balance: number; met: FounderType["id"
   return (
     <div className="rounded-3xl bg-[#ff5fa8] p-5 text-black">
       <p className="text-xl font-black leading-tight tracking-tight">Үүсгэн байгуулагчидтай уулз</p>
-      <p className="mt-1 text-sm font-semibold text-black/65">Очоо уулзалтаар соль. Нэг уулзалт — {MEETING_COST} оч.</p>
+      <p className="mt-1 text-sm font-semibold text-black/65">Оноогоо уулзалтаар соль. Нэг уулзалт — {MEETING_COST} оноо.</p>
       <ul className="mt-4 space-y-2">
         {team.map((t) => {
           const booked = met.includes(t.id);
@@ -1176,7 +1176,7 @@ function Meet({ balance, met, onMeet }: { balance: number; met: FounderType["id"
                 </Link>
               ) : short > 0 ? (
                 <span className="text-right text-xs font-bold leading-tight text-black/60">
-                  {short} оч
+                  {short} оноо
                   <br />
                   дутуу
                 </span>
@@ -1192,7 +1192,7 @@ function Meet({ balance, met, onMeet }: { balance: number; met: FounderType["id"
                   }}
                   className="rounded-xl bg-black px-3 py-2 text-xs font-black text-white transition-transform active:translate-y-0.5"
                 >
-                  {arming === t.id ? `${MEETING_COST} оч зарцуулах уу?` : "Уулзах"}
+                  {arming === t.id ? `${MEETING_COST} оноо зарцуулах уу?` : "Уулзах"}
                 </button>
               )}
             </li>

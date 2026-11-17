@@ -1,6 +1,6 @@
 // DIIL for startups (/founders): roles, startup phases and the task library behind the course in
 // lib/founder-course.ts. A founder picks a role — hacker, hipster or hustler — and where their
-// startup is now; the page turns that into what to do right now. Finishing a task earns "оч"
+// startup is now; the page turns that into what to do right now. Finishing a task earns "оноо"
 // (sparks), and tasks on the role's weak side pay double, pulling founders toward what they'd
 // rather avoid.
 
