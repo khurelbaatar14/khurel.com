@@ -11,6 +11,7 @@ import {
   Check,
   Clock,
   Coffee,
+  Coins,
   Gift,
   HandCoins,
   ListChecks,
@@ -19,13 +20,15 @@ import {
   PenLine,
   Play,
   RotateCcw,
+  Target,
+  Users,
+  Wrench,
   Zap,
 } from "lucide-react";
 import { saveCopy } from "@/app/founders/edit/actions";
 import { CopyProvider, Text, useEditing, usePlain } from "@/components/founder/Copy";
 import DiilLogo from "@/components/founder/DiilLogo";
 import Orbit, { Face } from "@/components/founder/Orbit";
-import SearchLoop from "@/components/founder/SearchLoop";
 import { founderTypes, phases, rewardFor, skills, type FounderType, type Phase } from "@/lib/founder";
 import type { Copy } from "@/lib/copy";
 import { modules, type Module } from "@/lib/founder-course";
@@ -407,6 +410,61 @@ const screenMotion = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.18 } },
 };
 
+// Each stage starts higher than the last, so the four cards climb like stairs on wide screens.
+const stairLift = ["lg:mt-36", "lg:mt-24", "lg:mt-12", "lg:mt-0"];
+const stairIndent = ["", "max-lg:ml-4", "max-lg:ml-8", "max-lg:ml-12"];
+
+/** The four stages as stairs: what each is, its goal (the next step), and the skills, team and money it takes. */
+function Stairs() {
+  const facts = [
+    { icon: Wrench, label: "Ур чадвар", key: "skills" },
+    { icon: Users, label: "Баг", key: "team" },
+    { icon: Coins, label: "Хөрөнгө", key: "money" },
+  ];
+  return (
+    <div className="mt-20">
+      <Text k="stairs.title" as="h2" className="block text-3xl font-black leading-[0.95] tracking-[-0.04em] sm:text-5xl" />
+      <Text k="stairs.sub" as="p" className="mt-4 max-w-2xl text-lg font-medium leading-relaxed text-[#9a9aa6]" />
+      <div className="mt-8 grid items-start gap-3 lg:grid-cols-4">
+        {stageColors.map((color, i) => {
+          const n = i + 1;
+          return (
+            <div key={n} className={cn(card, "relative flex flex-col overflow-hidden p-5", stairLift[i], stairIndent[i])}>
+              <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color }} />
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl text-lg font-black text-black" style={{ background: color }}>
+                  {n}
+                </span>
+                <Text k={`stair.${n}.name`} as="p" className="text-xl font-black leading-tight tracking-tight" />
+              </div>
+              <Text k={`stair.${n}.desc`} as="p" className="mt-3 text-[15px] font-medium leading-relaxed text-[#c8c8d0]" />
+              <div className="mt-4 rounded-2xl bg-[#1a1a1e] p-3.5">
+                <p className="flex items-center gap-1.5 text-xs font-black" style={{ color }}>
+                  <Target className="size-3.5" />
+                  {n < 4 ? "Зорилго — дараагийн шат" : "Зорилго"}
+                </p>
+                <Text k={`stair.${n}.goal`} as="p" className="mt-1 text-sm font-bold leading-snug text-white" />
+              </div>
+              <div className="mt-4 space-y-3">
+                {facts.map(({ icon: Icon, label, key }) => (
+                  <div key={key} className="flex gap-2.5">
+                    <Icon className="mt-0.5 size-4 shrink-0 text-[#6b6b75]" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#6b6b75]">{label}</p>
+                      <Text k={`stair.${n}.${key}`} as="p" className="text-sm font-semibold leading-snug text-[#e4e4e8]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <Text k="stairs.note" as="p" className="mt-4 text-xs font-medium text-[#55555f]" />
+    </div>
+  );
+}
+
 /** A link that scrolls within the page; plain text while editing, so its words can be clicked into. */
 function Jump({ to, className, style, children }: { to: string; className: string; style?: React.CSSProperties; children: React.ReactNode }) {
   const editing = useEditing();
@@ -488,27 +546,25 @@ function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
             </RoleCard>
           ))}
         </div>
+        <Stairs />
       </section>
 
       {first && (
         <section id="first-lesson" className="mt-20 scroll-mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
           <Text k="lesson.title" as="h2" className="block text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl" />
           <Text k="lesson.sub" as="p" className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]" />
-          <div className="mt-8 grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-            <div>
-              <VideoTile module={first} />
-              <ol className="mt-4 space-y-3">
-                {first.points.map((_, i) => (
-                  <li key={i} className={cn(card, "flex gap-3 p-4")}>
-                    <span className="grid size-7 shrink-0 place-items-center rounded-full text-sm font-black text-black" style={{ background: kinds.video.color }}>
-                      {i + 1}
-                    </span>
-                    <Text k={`lesson.point.${i + 1}`} className="font-medium leading-relaxed text-[#e4e4e8]" />
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <SearchLoop />
+          <div className="mt-8">
+            <VideoTile module={first} large />
+            <ol className="mt-4 grid gap-3 sm:grid-cols-2">
+              {first.points.map((_, i) => (
+                <li key={i} className={cn(card, "flex gap-3 p-4 sm:p-5")}>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full text-sm font-black text-black" style={{ background: kinds.video.color }}>
+                    {i + 1}
+                  </span>
+                  <Text k={`lesson.point.${i + 1}`} className="font-medium leading-relaxed text-[#e4e4e8]" />
+                </li>
+              ))}
+            </ol>
           </div>
           <Jump to="#roles" className="mt-6 inline-flex items-center gap-2 text-sm font-black transition-opacity hover:opacity-80" style={{ color: GREEN }}>
             <Text k="lesson.cta" />
@@ -833,7 +889,6 @@ function StepView({
           {(done) => (
             <>
               {m && <VideoTile module={m} />}
-              {step.video === "startup" && <SearchLoop />}
               {!done && <Earn label="Үзлээ" points={VIDEO_SPARKS} color={kinds.video.color} onEarn={() => onAward({ video: true })} />}
             </>
           )}
@@ -1009,13 +1064,16 @@ function Block({
   );
 }
 
-/** The lesson video; a placeholder until it's recorded and uploaded to Bunny. */
-function VideoTile({ module: m }: { module: Module }) {
+/** The lesson video; a placeholder until it's recorded and uploaded to Bunny. Large on the landing page. */
+function VideoTile({ module: m, large }: { module: Module; large?: boolean }) {
   return (
-    <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl" style={{ background: kinds.video.color }}>
-      <p className="absolute left-4 right-4 top-4 text-sm font-bold text-white/90">{m.title}</p>
-      <span className="grid size-16 place-items-center rounded-full bg-white shadow-xl">
-        <Play className="ml-1 size-7 fill-black text-black" />
+    <div
+      className={cn("relative grid aspect-video place-items-center overflow-hidden", large ? "rounded-3xl" : "rounded-2xl")}
+      style={{ background: kinds.video.color }}
+    >
+      <p className={cn("absolute left-4 right-4 top-4 font-bold text-white/90", large ? "text-base sm:left-6 sm:top-6 sm:text-xl" : "text-sm")}>{m.title}</p>
+      <span className={cn("grid place-items-center rounded-full bg-white shadow-xl", large ? "size-16 sm:size-24" : "size-16")}>
+        <Play className={cn("ml-1 fill-black text-black", large ? "size-7 sm:size-10" : "size-7")} />
       </span>
       <span className="absolute bottom-3 left-3 rounded-lg bg-black/50 px-2 py-1 text-xs font-bold">~{m.minutes} мин</span>
       <span className="absolute bottom-3 right-3 rounded-lg bg-black/50 px-2 py-1 text-xs font-bold">Видео удахгүй</span>
