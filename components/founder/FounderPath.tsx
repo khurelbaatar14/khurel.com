@@ -341,9 +341,11 @@ function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
             DIIL for startups
           </p>
           <h1 className="mt-6 text-[2.5rem] font-black leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.1rem]">
-            Өөрийн бизнесээ эхлүүлж <span style={{ color: GREEN }}>гайхалтай түүх</span> эндээс эхлэх боломжтой
+            Чиний стартапыг <span style={{ color: GREEN }}>дараагийн шатанд</span> гаргая
           </h1>
-          <p className="mt-6 max-w-lg text-xl font-bold leading-snug text-[#c8c8d0] sm:text-2xl">Чиний стартапыг дараагийн шатанд гаргая.</p>
+          <p className="mt-6 max-w-lg text-xl font-bold leading-snug text-[#c8c8d0] sm:text-2xl">
+            Өөрийн бизнесээ эхлүүлж гайхалтай түүх эндээс эхлүүлээрэй.
+          </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
               href="#roles"
