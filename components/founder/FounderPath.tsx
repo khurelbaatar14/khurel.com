@@ -304,7 +304,7 @@ function TopBar({ balance }: { balance: number }) {
 function Progress({ at }: { at: number }) {
   return (
     <ol className="flex flex-wrap items-center gap-2 text-sm font-bold">
-      {["Үүрэг", "Шат", "Аялал"].map((label, i) => (
+      {["Роль", "Шат", "Аялал"].map((label, i) => (
         <li key={label} className={cn("flex items-center gap-2", i <= at ? "text-white" : "text-[#55555f]")}>
           <span
             className={cn(
@@ -329,46 +329,105 @@ const screenMotion = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.18 } },
 };
 
+/** The landing page, told as a story: the promise, your role, the very first lesson, then what else you get. */
 function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
+  const first = modules.find((m) => m.id === "startup");
   return (
-    <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 lg:pt-14">
-      <Progress at={0} />
-      <div className="mt-8 grid items-center gap-x-14 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <motion.section {...screenMotion} className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+      <div className="grid items-center gap-x-14 gap-y-6 py-10 lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:py-14">
         <div>
-          <h1 className="text-[2.75rem] font-black leading-[0.95] tracking-[-0.045em] sm:text-7xl">Чи ямар үүсгэн байгуулагч вэ?</h1>
-          <p className="mt-5 max-w-md text-lg font-medium leading-relaxed text-[#9a9aa6]">
-            Нэгийг нь сонго. Чамд тохирсон замыг гаргаад өгье. Дараа нь сольж болно.
+          <p className="inline-flex items-center gap-2 rounded-full bg-[#121214] px-3 py-1.5 text-sm font-bold text-[#c8c8d0] ring-1 ring-[#222226]">
+            <span className="size-2 rounded-full" style={{ background: GREEN }} />
+            DIIL for startups
           </p>
-          <div className="mt-8 grid gap-3">
-            {team.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => onPick(t.id)}
-                className={cn(card, "group flex items-center gap-4 p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[var(--c)]")}
-                style={{ "--c": t.color } as React.CSSProperties}
-              >
-                <span
-                  className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl text-black transition-transform duration-200 group-hover:-rotate-6"
-                  style={{ background: t.color }}
-                >
-                  <Face type={t} size={56} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black tracking-tight">{t.title}</span>
-                    <span className="text-sm font-semibold text-[#6b6b75]">{t.name}</span>
-                  </span>
-                  <span className="mt-0.5 block text-[15px] font-medium text-[#c8c8d0]">{t.strength}</span>
-                </span>
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#1c1c20] transition-colors group-hover:bg-white group-hover:text-black">
-                  <ArrowRight className="size-5" />
-                </span>
-              </button>
-            ))}
+          <h1 className="mt-6 text-[2.5rem] font-black leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.1rem]">
+            Өөрийн бизнесээ эхлүүлж <span style={{ color: GREEN }}>гайхалтай түүх</span> эндээс эхлэх боломжтой
+          </h1>
+          <p className="mt-6 max-w-lg text-xl font-bold leading-snug text-[#c8c8d0] sm:text-2xl">Чиний стартапыг дараагийн шатанд гаргая.</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="#roles"
+              className="inline-flex items-center gap-2 rounded-2xl px-5 py-3.5 text-[15px] font-black text-black transition active:translate-y-0.5"
+              style={{ background: GREEN }}
+            >
+              Эхлэх
+              <ArrowRight className="size-5" />
+            </a>
+            <a
+              href="#first-lesson"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#1c1c20] px-5 py-3.5 text-[15px] font-black text-white ring-1 ring-[#2a2a30] transition hover:bg-[#232328] active:translate-y-0.5"
+            >
+              <Play className="size-5" />
+              Эхний хичээл үзэх
+            </a>
           </div>
         </div>
         <Orbit onPick={onPick} />
       </div>
+
+      <section id="roles" className="scroll-mt-20 border-t border-[#1a1a1e] pt-14">
+        <Progress at={0} />
+        <h2 className="mt-6 text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Чиний роль юу вэ?</h2>
+        <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
+          Нэгийг нь сонго — чамд тохирсон замыг гаргаад өгье. Дараа нь сольж болно.
+        </p>
+        <div className="mt-8 grid gap-3 lg:grid-cols-3">
+          {team.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => onPick(t.id)}
+              className={cn(card, "group flex flex-col p-5 text-left transition duration-200 hover:-translate-y-1 hover:border-[var(--c)] sm:p-6")}
+              style={{ "--c": t.color } as React.CSSProperties}
+            >
+              <span
+                className="relative grid size-20 place-items-center overflow-hidden rounded-[22px] text-black transition-transform duration-200 group-hover:-rotate-6"
+                style={{ background: t.color }}
+              >
+                <Face type={t} size={80} />
+              </span>
+              <span className="mt-5 flex items-baseline gap-2">
+                <span className="text-3xl font-black tracking-tight">{t.title}</span>
+                <span className="text-lg font-bold text-[#6b6b75]">/ {t.name}</span>
+              </span>
+              <span className="mt-2 flex-1 text-[17px] font-medium leading-snug text-[#c8c8d0]">{t.strength}</span>
+              <span className="mt-6 inline-flex items-center gap-2 text-sm font-black" style={{ color: t.color }}>
+                Сонгох
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {first && (
+        <section id="first-lesson" className="mt-20 scroll-mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
+          <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Хамгийн эхний хичээл үзэх</h2>
+          <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
+            {first.title} {first.promise}
+          </p>
+          <div className="mt-8 grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+            <div>
+              <VideoTile module={first} />
+              <ol className="mt-4 space-y-3">
+                {first.points.map((point, i) => (
+                  <li key={i} className={cn(card, "flex gap-3 p-4")}>
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full text-sm font-black text-black" style={{ background: kinds.video.color }}>
+                      {i + 1}
+                    </span>
+                    <span className="font-medium leading-relaxed text-[#e4e4e8]">{point}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <SearchLoop />
+          </div>
+          <a href="#roles" className="mt-6 inline-flex items-center gap-2 text-sm font-black transition-opacity hover:opacity-80" style={{ color: GREEN }}>
+            Роль сонгоод үргэлжлүүл
+            <ArrowRight className="size-4 -rotate-90" />
+          </a>
+        </section>
+      )}
+
       <Perks />
     </motion.section>
   );
@@ -604,7 +663,11 @@ function Path({ steps, logs, current, onOpen }: { steps: Step[]; logs: Record<st
   }, [current]);
 
   return (
-    <div ref={row} className="-mx-4 mt-5 flex items-center overflow-x-auto px-4 py-2 sm:mx-0 sm:px-1">
+    // Links stretch so the row fills its width; on a phone it swipes, with no scrollbar and soft edges.
+    <div
+      ref={row}
+      className="-mx-4 mt-5 flex items-center overflow-x-auto px-4 py-2 [scrollbar-width:none] max-sm:[mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] sm:mx-0 sm:px-1 [&::-webkit-scrollbar]:hidden"
+    >
       {steps.map((s, i) => {
         const log = logs[s.id];
         const done = isDone(log);
@@ -626,7 +689,7 @@ function Path({ steps, logs, current, onOpen }: { steps: Step[]; logs: Record<st
               {done ? <Check className="size-5" strokeWidth={3} /> : i + 1}
             </button>
             {i < steps.length - 1 && (
-              <span className="mx-1.5 h-[3px] w-5 shrink-0 rounded-full sm:w-7" style={{ background: done ? GREEN : "#222226" }} />
+              <span className="mx-1.5 h-[3px] min-w-3 flex-1 rounded-full" style={{ background: done ? GREEN : "#222226" }} />
             )}
           </Fragment>
         );
@@ -1005,24 +1068,39 @@ function PerkIcon({ perk, className }: { perk: Perk; className?: string }) {
   return <Icon className={className} strokeWidth={2.25} />;
 }
 
-/** The landing page's "what you get": every perk and what opens it, like a startup program page. */
+/** The phrase every perk ends on, "үр дүн гаргах" (getting results), marked like a highlighter. */
+function Results({ text }: { text: string }) {
+  return text.split(/(үр дүн гаргах)/).map((part, i) =>
+    part === "үр дүн гаргах" ? (
+      <mark key={i} className="whitespace-nowrap rounded-md px-1 font-black text-black" style={{ background: GREEN }}>
+        {part}
+      </mark>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    ),
+  );
+}
+
+/** The landing page's other benefits: every perk and what opens it, like a startup program page. */
 function Perks() {
   return (
     <section className="mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
-      <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Юу авах вэ?</h2>
+      <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Бусад давуу тал</h2>
       <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
-        Видео хичээлээс гадна. Оч цуглуулах тусам шинэ боломж нээгдэнэ.
+        Хичээлээс гадна. Оч цуглуулах тусам шинэ боломж нээгдэнэ.
       </p>
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {perks.map((perk) => {
           const { need } = perkState(perk, 0, -1, 0);
           return (
-            <div key={perk.id} className={cn(card, "flex flex-col p-5")}>
+            <div key={perk.id} className={cn(card, "flex flex-col p-5 sm:p-6")}>
               <span className="grid size-12 place-items-center rounded-2xl text-black" style={{ background: perk.color }}>
                 <PerkIcon perk={perk} className="size-6" />
               </span>
-              <p className="mt-5 text-xl font-black leading-tight tracking-tight">{perk.title}</p>
-              <p className="mt-2 flex-1 text-[15px] font-medium leading-relaxed text-[#9a9aa6]">{perk.body}</p>
+              <p className="mt-5 text-2xl font-black leading-tight tracking-tight">{perk.title}</p>
+              <p className="mt-2 flex-1 text-[16px] font-medium leading-relaxed text-[#c8c8d0]">
+                <Results text={perk.body} />
+              </p>
               <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#1c1c20] px-3 py-1.5 text-xs font-black" style={{ color: perk.color }}>
                 {perk.unlock.kind === "start" ? <Check className="size-3.5" strokeWidth={3} /> : <Lock className="size-3.5" />}
                 {need}
