@@ -704,8 +704,59 @@ export function totalEarned(role: FounderType, logs: Record<string, StepLog>) {
   return phases.reduce((sum, p) => sum + stageEarned(role, p, logs), 0);
 }
 
-/** Rewards that open with a stage, on top of the meetings that sparks buy. */
-export const rewards: Partial<Record<Phase["id"], string>> = {
-  customers: "Корпорацтай танилцуулна",
-  growth: "Хөрөнгө оруулагчтай танилцуулна",
+/**
+ * What a founder gets beyond the lessons, like a startup program's perks. Each opens on its own
+ * condition: after enough sparks are earned, when a stage unlocks, or by spending sparks (the
+ * founder meetings).
+ */
+export type Perk = {
+  id: string;
+  title: string;
+  body: string;
+  unlock: { kind: "start" } | { kind: "sparks"; at: number } | { kind: "stage"; at: Phase["id"] } | { kind: "spend"; cost: number };
+  color: string;
 };
+
+/** The DIIL app (diil.work) for 6 months free. The code is handed out once the perk opens. */
+export const DIIL_APP = { url: "https://diil.work", code: "" };
+
+export const perks: Perk[] = [
+  {
+    id: "diil-app",
+    title: "DIIL 6 сар үнэгүй",
+    body: "Анхны багаа DIIL-ээр ол. Промо кодоор 6 сар үнэгүй ашигла.",
+    unlock: { kind: "sparks", at: 300 },
+    color: "#37f59a",
+  },
+  {
+    id: "meet",
+    title: "DIIL-ийн үүсгэн байгуулагчидтай уулз",
+    body: "CEO, CTO, CMO-той нүүр тулж уулзаад стартапаа ярилц.",
+    unlock: { kind: "spend", cost: MEETING_COST },
+    color: "#ff5fa8",
+  },
+  {
+    id: "corporates",
+    title: "Корпорацтай танилцуулга",
+    body: "Тохирох томоохон компанийн шийдвэр гаргагчтай шууд холбоно.",
+    unlock: { kind: "stage", at: "customers" },
+    color: "#ffd23d",
+  },
+  {
+    id: "investors",
+    title: "Хөрөнгө оруулагчтай танилцуулга",
+    body: "Таньдаг сахиусан тэнгэр, хөрөнгө оруулагчидтай холбоно.",
+    unlock: { kind: "stage", at: "growth" },
+    color: "#37f59a",
+  },
+];
+
+/** Whether a perk is open for this founder, and how far off it is if not. */
+export function perkState(perk: Perk, earnedSoFar: number, reached: number, balance: number) {
+  const u = perk.unlock;
+  if (u.kind === "start") return { open: true, need: "Эхнээсээ" };
+  if (u.kind === "sparks") return { open: earnedSoFar >= u.at, need: `${u.at} оч цуглуулахад` };
+  if (u.kind === "spend") return { open: balance >= u.cost, need: `${u.cost} оч-оор` };
+  const at = phases.findIndex((p) => p.id === u.at);
+  return { open: reached >= at, need: `${at + 1}-р шат нээгдэхэд` };
+}
