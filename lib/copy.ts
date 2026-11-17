@@ -54,7 +54,7 @@ export const defaults: Copy = {
   ...Object.fromEntries(first.points.map((point, i) => [`lesson.point.${i + 1}`, point])),
   "lesson.cta": "Роль сонгоод үргэлжлүүл",
   "perks.title": "Бусад давуу тал",
-  "perks.sub": "Хичээлээс гадна. Оч цуглуулах тусам шинэ боломж нээгдэнэ.",
+  "perks.sub": "Хичээлээс гадна. Оноо цуглуулах тусам шинэ боломж нээгдэнэ.",
   ...Object.fromEntries(perks.flatMap((p) => [[`perk.${p.id}.title`, p.title], [`perk.${p.id}.body`, p.body]])),
 };
 

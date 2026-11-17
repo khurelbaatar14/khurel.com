@@ -1,6 +1,6 @@
 // DIIL for startups (/founders): the path a founder walks after picking a role and a stage. Each step
 // is a video, then a real-world task, then a short reflection, and each of the three earns sparks
-// ("оч"). Sparks fill the bar that unlocks the next stage, and can be spent on a meeting with one of
+// ("оноо"). Sparks fill the bar that unlocks the next stage, and can be spent on a meeting with one of
 // the DIIL co-founders. Copy is everyday Mongolian, written to "чи".
 //
 // The CEO (Hustler) path is written step by step. The CTO and CMO paths are still built from the
@@ -755,8 +755,8 @@ export const perks: Perk[] = [
 export function perkState(perk: Perk, earnedSoFar: number, reached: number, balance: number) {
   const u = perk.unlock;
   if (u.kind === "start") return { open: true, need: "Эхнээсээ" };
-  if (u.kind === "sparks") return { open: earnedSoFar >= u.at, need: `${u.at} оч цуглуулахад` };
-  if (u.kind === "spend") return { open: balance >= u.cost, need: `${u.cost} оч-оор` };
+  if (u.kind === "sparks") return { open: earnedSoFar >= u.at, need: `${u.at} оноо цуглуулахад` };
+  if (u.kind === "spend") return { open: balance >= u.cost, need: `${u.cost} оноогоор` };
   const at = phases.findIndex((p) => p.id === u.at);
   return { open: reached >= at, need: `${at + 1}-р шат нээгдэхэд` };
 }
