@@ -3,7 +3,24 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { animate, AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Clock, Gift, ListChecks, Lock, PartyPopper, PenLine, Play, RotateCcw, Zap } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  Building2,
+  Check,
+  Clock,
+  Coffee,
+  Gift,
+  HandCoins,
+  ListChecks,
+  Lock,
+  PartyPopper,
+  PenLine,
+  Play,
+  RotateCcw,
+  Zap,
+} from "lucide-react";
 import DiilLogo from "@/components/founder/DiilLogo";
 import Orbit, { Face } from "@/components/founder/Orbit";
 import SearchLoop from "@/components/founder/SearchLoop";
@@ -15,11 +32,14 @@ import {
   VIDEO_SPARKS,
   isDone,
   pathFor,
-  rewards,
+  DIIL_APP,
+  perkState,
+  perks,
   stageEarned,
   stageGoal,
   stepSparks,
   totalEarned,
+  type Perk,
   type Step,
   type StepLog,
 } from "@/lib/diil";
@@ -349,6 +369,7 @@ function RoleScreen({ onPick }: { onPick: (id: FounderType["id"]) => void }) {
         </div>
         <Orbit onPick={onPick} />
       </div>
+      <Perks />
     </motion.section>
   );
 }
@@ -519,6 +540,7 @@ function Journey({
         <aside className="space-y-4 lg:sticky lg:top-24">
           <Wallet balance={balance} earned={earned} spent={saved.spent} />
           <Meet balance={balance} met={saved.met} onMeet={onMeet} />
+          <PerksCard earned={earned} reached={saved.reached} balance={balance} />
           <Stages saved={saved} at={at} onStage={onStage} />
         </aside>
       </div>
@@ -971,6 +993,128 @@ function Meet({ balance, met, onMeet }: { balance: number; met: FounderType["id"
   );
 }
 
+const perkIcons = {
+  "diil-app": Briefcase,
+  meet: Coffee,
+  corporates: Building2,
+  investors: HandCoins,
+} as const;
+
+function PerkIcon({ perk, className }: { perk: Perk; className?: string }) {
+  const Icon = perkIcons[perk.id as keyof typeof perkIcons] ?? Gift;
+  return <Icon className={className} strokeWidth={2.25} />;
+}
+
+/** The landing page's "what you get": every perk and what opens it, like a startup program page. */
+function Perks() {
+  return (
+    <section className="mt-20 border-t border-[#1a1a1e] pt-14 sm:mt-24">
+      <h2 className="text-[2.25rem] font-black leading-[0.95] tracking-[-0.04em] sm:text-6xl">Юу авах вэ?</h2>
+      <p className="mt-4 max-w-xl text-lg font-medium leading-relaxed text-[#9a9aa6]">
+        Видео хичээлээс гадна. Оч цуглуулах тусам шинэ боломж нээгдэнэ.
+      </p>
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {perks.map((perk) => {
+          const { need } = perkState(perk, 0, -1, 0);
+          return (
+            <div key={perk.id} className={cn(card, "flex flex-col p-5")}>
+              <span className="grid size-12 place-items-center rounded-2xl text-black" style={{ background: perk.color }}>
+                <PerkIcon perk={perk} className="size-6" />
+              </span>
+              <p className="mt-5 text-xl font-black leading-tight tracking-tight">{perk.title}</p>
+              <p className="mt-2 flex-1 text-[15px] font-medium leading-relaxed text-[#9a9aa6]">{perk.body}</p>
+              <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#1c1c20] px-3 py-1.5 text-xs font-black" style={{ color: perk.color }}>
+                {perk.unlock.kind === "start" ? <Check className="size-3.5" strokeWidth={3} /> : <Lock className="size-3.5" />}
+                {need}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** The founder's perks on the path: what's open, what's left, and the DIIL code once it opens. */
+function PerksCard({ earned, reached, balance }: { earned: number; reached: number; balance: number }) {
+  const [shown, setShown] = useState(false);
+  const [copied, setCopied] = useState(false);
+  // Meetings have their own card.
+  const list = perks.filter((perk) => perk.id !== "meet");
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(DIIL_APP.code);
+      setCopied(true);
+    } catch {
+      // Clipboard blocked: the code is on screen to copy by hand.
+    }
+  }
+
+  return (
+    <div className={cn(card, "p-5")}>
+      <p className="flex items-center gap-2 text-lg font-black tracking-tight">
+        <Gift className="size-5" style={{ color: GREEN }} />
+        Чиний давуу эрх
+      </p>
+      <ul className="mt-3 space-y-1">
+        {list.map((perk) => {
+          const { open, need } = perkState(perk, earned, reached, balance);
+          const promo = perk.id === "diil-app";
+          return (
+            <li key={perk.id} className="rounded-2xl p-2">
+              <div className="flex items-center gap-3">
+                <span
+                  className="grid size-9 shrink-0 place-items-center rounded-xl"
+                  style={open ? { background: perk.color, color: "#000" } : { background: "#1a1a1e", color: "#55555f" }}
+                >
+                  {open ? <PerkIcon perk={perk} className="size-4" /> : <Lock className="size-4" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cn("block text-sm font-bold leading-snug", !open && "text-[#6b6b75]")}>{perk.title}</span>
+                  {!open && <span className="block text-xs font-semibold text-[#55555f]">{need}</span>}
+                </span>
+                {open && promo && !shown && (
+                  <button
+                    onClick={() => setShown(true)}
+                    className="shrink-0 rounded-xl px-3 py-2 text-xs font-black text-black"
+                    style={{ background: perk.color }}
+                  >
+                    Код авах
+                  </button>
+                )}
+              </div>
+              {open && promo && shown && (
+                <div className="mt-2 rounded-2xl bg-[#1a1a1e] p-3">
+                  {DIIL_APP.code ? (
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 rounded-xl bg-black px-3 py-2 text-center font-black tracking-widest">{DIIL_APP.code}</code>
+                      <button onClick={copy} className="rounded-xl px-3 py-2 text-xs font-black text-black" style={{ background: perk.color }}>
+                        {copied ? "Хуулсан" : "Хуулах"}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold text-[#c8c8d0]">Код удахгүй энд гарна.</p>
+                  )}
+                  <a
+                    href={DIIL_APP.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#9a9aa6] transition-colors hover:text-white"
+                  >
+                    {DIIL_APP.url.replace("https://", "")} руу орох
+                    <ArrowRight className="size-3.5" />
+                  </a>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 /** All four stages: open ones can be revisited, the rest unlock with sparks. */
 function Stages({ saved, at, onStage }: { saved: Saved; at: number; onStage: (i: number) => void }) {
   return (
@@ -979,7 +1123,7 @@ function Stages({ saved, at, onStage }: { saved: Saved; at: number; onStage: (i:
       <ul className="mt-3 space-y-1">
         {phases.map((p, i) => {
           const open = i <= saved.reached;
-          const reward = rewards[p.id];
+          const reward = perks.find((perk) => perk.unlock.kind === "stage" && perk.unlock.at === p.id)?.title;
           return (
             <li key={p.id}>
               <button
