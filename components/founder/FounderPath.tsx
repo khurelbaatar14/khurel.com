@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } 
 import Link from "next/link";
 import { animate, AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Briefcase,
@@ -12,6 +13,7 @@ import {
   Clock,
   Coffee,
   Coins,
+  Copy as CopyIcon,
   Gift,
   HandCoins,
   ListChecks,
@@ -36,6 +38,7 @@ import {
   MEETING_COST,
   NOTE_SPARKS,
   VIDEO_SPARKS,
+  intros,
   isDone,
   pathFor,
   DIIL_APP,
@@ -46,6 +49,7 @@ import {
   stepSparks,
   totalEarned,
   type Perk,
+  type Extra,
   type Step,
   type StepLog,
 } from "@/lib/diil";
@@ -723,6 +727,14 @@ function Journey({
 
       <div className="mt-6 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <div className="min-w-0">
+          {intros[role.id] && (
+            <div className="mb-4 rounded-3xl border-l-4 bg-[#121214] p-5" style={{ borderColor: role.color }}>
+              <p className="text-sm font-black" style={{ color: role.color }}>
+                {intros[role.id]!.title}
+              </p>
+              <p className="mt-1.5 font-semibold leading-relaxed text-[#e4e4e8]">{intros[role.id]!.text}</p>
+            </div>
+          )}
           <StageBar role={role} phase={phase} saved={saved} />
           <Path steps={steps} logs={saved.logs} current={index} onOpen={open} />
           <div id="step" className="scroll-mt-24">
@@ -862,6 +874,8 @@ function StepView({
 }) {
   const m = modules.find((x) => x.id === step.video);
   const reward = rewardFor(step.task, role);
+  const checklist = step.extras?.find((x) => x.kind === "checklist");
+  const checklistDone = !checklist || (log?.checks?.length ?? 0) >= checklist.items.length;
   const doubled = reward > step.task.reward;
   const [note, setNote] = useState(log?.note ?? "");
 
@@ -928,11 +942,19 @@ function StepView({
                   </li>
                 ))}
               </ol>
+              {step.extras && (
+                <Extras extras={step.extras} checks={log?.checks ?? []} locked={done} onCheck={(checks) => onAward({ checks })} />
+              )}
               <p className="rounded-2xl bg-[#1a1a1e] px-4 py-3 text-sm font-medium leading-relaxed text-[#c8c8d0]">
                 <span className="font-black text-white">Дууссаныг яаж мэдэх вэ? </span>
                 {step.task.proof}
               </p>
-              {!done && <Earn label="Хийлээ" points={reward} color={kinds.task.color} onEarn={() => onAward({ task: true })} />}
+              {!done && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Earn label="Хийлээ" points={reward} color={kinds.task.color} disabled={!checklistDone} onEarn={() => onAward({ task: true })} />
+                  {!checklistDone && <span className="text-sm font-bold text-[#6b6b75]">Шалгах хуудсаа бүгдийг нь тэмдэглэ</span>}
+                </div>
+              )}
             </>
           )}
         </Block>
@@ -993,6 +1015,118 @@ function StepView({
         )}
       </AnimatePresence>
     </motion.article>
+  );
+}
+
+/** A task's extras: tables as cards, a prompt to copy, rules, a tip or warning, and a checklist. */
+function Extras({ extras, checks, locked, onCheck }: { extras: Extra[]; checks: number[]; locked: boolean; onCheck: (checks: number[]) => void }) {
+  return extras.map((x, i) => {
+    if (x.kind === "table") {
+      return (
+        <div key={i} className="grid gap-2 sm:grid-cols-2">
+          {x.rows.map((row, r) => (
+            <div key={r} className="rounded-2xl border border-[#2a2a30] bg-[#0d0d0f] p-4">
+              <p className="font-black">{row[0]}</p>
+              {row.slice(1).map((cell, c) => (
+                <p key={c} className="mt-2 text-sm leading-relaxed">
+                  <span className="block text-xs font-bold text-[#6b6b75]">{x.head[c + 1]}</span>
+                  <span className="font-medium text-[#e4e4e8]">{cell}</span>
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (x.kind === "prompt") return <PromptBox key={i} text={x.text} />;
+    if (x.kind === "rules") {
+      return (
+        <div key={i} className="rounded-2xl border border-[#2a2a30] p-4">
+          <p className="font-black">{x.title}</p>
+          <ul className="mt-3 space-y-2.5">
+            {x.items.map((item, j) => (
+              <li key={j} className="flex gap-3">
+                <span className="mt-2 size-2 shrink-0 rounded-full" style={{ background: kinds.task.color }} />
+                <span className="font-medium leading-relaxed text-[#e4e4e8]">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+    if (x.kind === "tip" || x.kind === "warning") {
+      const warn = x.kind === "warning";
+      return (
+        <p
+          key={i}
+          className="flex gap-2.5 rounded-2xl border-l-4 px-4 py-3 text-sm font-semibold leading-relaxed text-[#e4e4e8]"
+          style={{ borderColor: warn ? "#ffd23d" : GREEN, background: warn ? "#ffd23d14" : "#37f59a14" }}
+        >
+          {warn && <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#ffd23d]" />}
+          {x.text}
+        </p>
+      );
+    }
+    return (
+      <div key={i} className="rounded-2xl border border-[#2a2a30] p-4">
+        <p className="flex items-baseline justify-between gap-3 font-black">
+          Шалгах хуудас
+          <span className="text-sm tabular-nums text-[#9a9aa6]">
+            {checks.length} / {x.items.length}
+          </span>
+        </p>
+        <ul className="mt-3 space-y-1">
+          {x.items.map((item, j) => {
+            const on = checks.includes(j);
+            return (
+              <li key={j}>
+                <button
+                  onClick={() => onCheck(on ? checks.filter((c) => c !== j) : [...checks, j])}
+                  disabled={locked}
+                  aria-pressed={on}
+                  className="flex w-full items-start gap-3 rounded-xl p-2 text-left transition-colors hover:bg-[#1a1a1e] disabled:hover:bg-transparent"
+                >
+                  <span
+                    className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border-2", on ? "border-transparent text-black" : "border-[#3a3a42]")}
+                    style={on ? { background: GREEN } : undefined}
+                  >
+                    {on && <Check className="size-3.5" strokeWidth={3} />}
+                  </span>
+                  <span className={cn("font-medium leading-relaxed", on ? "text-[#9a9aa6]" : "text-[#e4e4e8]")}>{item}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  });
+}
+
+/** A prompt template to fill in and give to an AI tool, with a copy button. */
+function PromptBox({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[#2a2a30] bg-[#0d0d0f]">
+      <div className="flex items-center justify-between border-b border-[#2a2a30] px-4 py-2.5">
+        <p className="text-sm font-black">AI-д өгөх prompt</p>
+        <button
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(text);
+              setCopied(true);
+            } catch {
+              // Clipboard blocked: the text can still be selected and copied by hand.
+            }
+          }}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1c1c20] px-2.5 py-1.5 text-xs font-black text-white transition-colors hover:bg-[#26262b]"
+        >
+          {copied ? <Check className="size-3.5" strokeWidth={3} /> : <CopyIcon className="size-3.5" />}
+          {copied ? "Хуулсан" : "Хуулах"}
+        </button>
+      </div>
+      <pre className="whitespace-pre-wrap px-4 py-3 font-sans text-sm font-medium leading-relaxed text-[#e4e4e8]">{text}</pre>
+    </div>
   );
 }
 
